@@ -1,0 +1,64 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Ticket #{{ ticket.id }} Reply | ApexStore Management{% endblock %}
+{% block header_title %}Respond to Customer Ticket{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <div style="font-size:0.85rem; color:#64748b; margin-bottom:0.25rem;">
+      <a href="{% url 'dashboard:support_tickets' %}">&larr; Back to Support Tickets</a>
+    </div>
+    <h1 class="page-title">Ticket #{{ ticket.id }}: {{ ticket.subject }}</h1>
+    <div class="page-subtitle">Submitted by {{ ticket.user.username }} ({{ ticket.user.email }})</div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:2rem; align-items:start;">
+
+  <!-- Customer Request -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Customer Message</h3>
+    </div>
+    <div class="card-body">
+      <div style="font-size:0.85rem; color:#64748b; margin-bottom:1rem;">
+        Opened: {{ ticket.created_at|date:"F d, Y \a\t g:i A" }} • Priority: <strong>{{ ticket.get_priority_display }}</strong>
+        {% if ticket.order_number %} • Order: <strong>{{ ticket.order_number }}</strong>{% endif %}
+      </div>
+
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:1.25rem; font-size:0.95rem; line-height:1.6; color:#334155; white-space:pre-line;">
+        {{ ticket.message }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Staff Response Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Staff Reply & Status Update</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label class="form-label">Ticket Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Reply Message to Customer</label>
+          {{ form.admin_response }}
+        </div>
+
+        <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+          <button type="submit" class="btn btn-primary">Save & Send Reply</button>
+          <a href="{% url 'dashboard:support_tickets' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

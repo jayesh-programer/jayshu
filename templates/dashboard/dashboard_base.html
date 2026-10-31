@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Administration Control Panel | ApexStore{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="dashboard-layout">
+  <!-- Left Sidebar -->
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+      </svg>
+      <span style="color:#ffffff; margin-left:8px;">Apex</span><span>Admin</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-heading">Core</div>
+      <a href="{% url 'dashboard:index' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'dashboard' %}active{% endif %}">
+        📊 Overview
+      </a>
+
+      {% if can_manage_products %}
+      <div class="sidebar-heading">Catalog & Items</div>
+      <a href="{% url 'dashboard:product_list' %}" class="sidebar-nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+        📦 Products & Variants
+      </a>
+      <a href="{% url 'dashboard:category_list' %}" class="sidebar-nav-link {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
+        🗂️ Categories
+      </a>
+      {% endif %}
+
+      {% if can_manage_orders %}
+      <div class="sidebar-heading">Fulfillment & Payments</div>
+      <a href="{% url 'dashboard:order_list' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'order_list' or request.resolver_match.url_name == 'order_detail' %}active{% endif %}">
+        🛒 Orders & Shipments
+      </a>
+      <a href="{% url 'dashboard:payment_transactions' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'payment_transactions' %}active{% endif %}">
+        💳 Payment Transactions
+      </a>
+      {% endif %}
+
+      {% if can_manage_inventory %}
+      <div class="sidebar-heading">Stock & Warehouse</div>
+      <a href="{% url 'dashboard:inventory_list' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'inventory_list' %}active{% endif %}">
+        📋 Inventory Stock
+      </a>
+      <a href="{% url 'dashboard:inventory_history' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'inventory_history' %}active{% endif %}">
+        📜 Stock Audit Logs
+      </a>
+      {% endif %}
+
+      {% if can_manage_support %}
+      <div class="sidebar-heading">CRM & Support</div>
+      <a href="{% url 'dashboard:customer_list' %}" class="sidebar-nav-link {% if 'customer' in request.resolver_match.url_name %}active{% endif %}">
+        👥 Customers
+      </a>
+      <a href="{% url 'dashboard:support_tickets' %}" class="sidebar-nav-link {% if 'support' in request.resolver_match.url_name %}active{% endif %}">
+        🎫 Support Tickets
+      </a>
+      {% endif %}
+
+      {% if can_view_reports %}
+      <div class="sidebar-heading">Marketing & Finance</div>
+      <a href="{% url 'dashboard:coupon_list' %}" class="sidebar-nav-link {% if 'coupon' in request.resolver_match.url_name %}active{% endif %}">
+        🏷️ Coupons & Discounts
+      </a>
+      <a href="{% url 'reports:index' %}" class="sidebar-nav-link {% if request.resolver_match.app_name == 'reports' %}active{% endif %}">
+        📈 Reports & Analytics
+      </a>
+      {% endif %}
+
+      {% if user.is_superuser or user_role == 'superadmin' %}
+      <div class="sidebar-heading">Administration</div>
+      <a href="{% url 'dashboard:staff_list' %}" class="sidebar-nav-link {% if 'staff' in request.resolver_match.url_name %}active{% endif %}">
+        🛡️ Staff Roles & Access
+      </a>
+      {% endif %}
+    </nav>
+
+    <!-- Sidebar User Footer -->
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar">
+        {{ user.username|make_list|first|upper }}
+      </div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="sidebar-user-role">{{ user_role|title }}</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Body Area -->
+  <div class="dashboard-main">
+    <!-- Top Bar -->
+    <header class="dashboard-header">
+      <div class="dashboard-header-left">
+        <button id="sidebar-toggle" style="background:none; border:none; font-size:1.25rem; cursor:pointer;" class="no-print">
+          ☰
+        </button>
+        <span style="font-weight:700; color:#0f172a; font-size:1.1rem;">
+          {% block header_title %}Management Portal{% endblock %}
+        </span>
+      </div>
+
+      <div class="dashboard-header-right">
+        <a href="{% url 'catalog:home' %}" target="_blank" class="btn btn-secondary btn-sm" title="Open customer storefront in new tab">
+          🌐 View Storefront &rarr;
+        </a>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline btn-sm">
+          Log Out
+        </a>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="dashboard-content">
+      <!-- Flash Messages -->
+      {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}">
+          <span>{{ message }}</span>
+          <button type="button" class="alert-close">&times;</button>
+        </div>
+        {% endfor %}
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

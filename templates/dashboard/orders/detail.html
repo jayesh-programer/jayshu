@@ -1,0 +1,222 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Manage Order #{{ order.order_number }} | ApexStore{% endblock %}
+{% block header_title %}Order Fulfillment & Status{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <div style="font-size:0.85rem; color:#64748b; margin-bottom:0.25rem;">
+      <a href="{% url 'dashboard:order_list' %}">&larr; Back to Orders</a>
+    </div>
+    <h1 class="page-title">Order #{{ order.order_number }}</h1>
+    <div class="page-subtitle">Placed by {{ order.customer_name }} on {{ order.created_at|date:"F d, Y \a\t g:i A" }}</div>
+  </div>
+  <div style="display:flex; gap:0.75rem;">
+    <a href="{% url 'orders:invoice' order_number=order.order_number %}" target="_blank" class="btn btn-secondary btn-sm">
+      🖨️ View / Print Invoice
+    </a>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 2fr 1fr; gap:2rem; align-items:start;">
+
+  <!-- Left Column: Items, Customer, History -->
+  <div style="display:flex; flex-direction:column; gap:2rem;">
+
+    <!-- Items Table Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Purchased Items ({{ items.count }})</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Unit Price</th>
+              <th>Qty</th>
+              <th style="text-align:right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+            <tr>
+              <td>
+                <div style="font-weight:700; color:#0f172a;">{{ item.product_name }}</div>
+                {% if item.variant_info %}<div style="font-size:0.75rem; color:#64748b;">{{ item.variant_info }}</div>{% endif %}
+                {% if item.product %}
+                  <div style="font-size:0.75rem; color:#2563eb;">Available in Warehouse: {{ item.product.stock }} units</div>
+                {% endif %}
+              </td>
+              <td>{{ currency_symbol }}{{ item.unit_price }}</td>
+              <td><strong>{{ item.quantity }}</strong></td>
+              <td style="text-align:right; font-weight:700; color:#0f172a;">{{ currency_symbol }}{{ item.line_total }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Financial Calculations -->
+      <div style="padding:1.5rem; max-width:320px; margin-left:auto; display:flex; flex-direction:column; gap:0.5rem; font-size:0.9rem;">
+        <div style="display:flex; justify-content:space-between; color:#64748b;">
+          <span>Subtotal</span>
+          <span>{{ currency_symbol }}{{ order.subtotal }}</span>
+        </div>
+        {% if order.discount_amount > 0 %}
+        <div style="display:flex; justify-content:space-between; color:#16a34a; font-weight:600;">
+          <span>Discount ({{ order.coupon.code|default:"Coupon" }})</span>
+          <span>-{{ currency_symbol }}{{ order.discount_amount }}</span>
+        </div>
+        {% endif %}
+        <div style="display:flex; justify-content:space-between; color:#64748b;">
+          <span>Shipping Fee</span>
+          <span>{{ currency_symbol }}{{ order.shipping_fee }}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; color:#64748b;">
+          <span>Tax</span>
+          <span>{{ currency_symbol }}{{ order.tax_amount }}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-top:2px solid #0f172a; padding-top:0.6rem; font-size:1.2rem; font-weight:800; color:#0f172a;">
+          <span>Total</span>
+          <span style="color:#2563eb;">{{ currency_symbol }}{{ order.total }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status History Audit Log -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Order Status History & Audit Log</h3>
+      </div>
+      <div class="card-body">
+        {% if history %}
+        <div style="display:flex; flex-direction:column; gap:1rem;">
+          {% for h in history %}
+          <div style="border-left:3px solid #2563eb; padding-left:1rem; position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="status-badge badge-{{ h.status }}">{{ h.status }}</span>
+              <span style="font-size:0.75rem; color:#64748b;">{{ h.created_at|date:"M d, Y H:i" }}</span>
+            </div>
+            <div style="font-size:0.875rem; color:#334155; margin-top:0.35rem;">
+              {{ h.comment }}
+            </div>
+            <div style="font-size:0.75rem; color:#94a3b8;">
+              Updated by: {{ h.changed_by.username|default:"System" }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p style="color:#64748b; font-size:0.875rem;">No history records found.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Payment & Refund Records -->
+    {% if payments or refunds %}
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Transactions & Refunds</h3>
+      </div>
+      <div class="card-body">
+        {% for pay in payments %}
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:0.85rem; margin-bottom:0.75rem; font-size:0.875rem;">
+          <strong>Payment Transaction:</strong> <code>{{ pay.transaction_id }}</code> • Amount: <strong>{{ currency_symbol }}{{ pay.amount }}</strong> • Status: <span class="status-badge badge-{{ pay.status }}">{{ pay.get_status_display }}</span>
+          {% if pay.gateway_response %}<div style="font-size:0.75rem; color:#64748b; margin-top:4px;">{{ pay.gateway_response }}</div>{% endif %}
+        </div>
+        {% endfor %}
+
+        {% for ref in refunds %}
+        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:0.85rem; font-size:0.875rem; color:#991b1b;">
+          <strong>Refund Record:</strong> <code>{{ ref.refund_id }}</code> • Amount: <strong>{{ currency_symbol }}{{ ref.amount }}</strong> • Reason: {{ ref.reason }}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Right Column: Update Status Form & Customer Info -->
+  <div style="display:flex; flex-direction:column; gap:2rem;">
+
+    <!-- Order Status & Shipment Transition Card -->
+    <div class="card">
+      <div class="card-header" style="background:#eff6ff;">
+        <h3 class="card-title" style="color:#1e40af;">Status & Fulfillment Controls</h3>
+      </div>
+      <div class="card-body">
+        <form method="POST">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label class="form-label">Order Status</label>
+            {{ status_form.status }}
+            <span class="form-text" style="color:#ca8a04;">
+              * Changing to <strong>Cancelled</strong> or <strong>Returned</strong> automatically restores stock back into warehouse catalog inventory atomically.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Payment Status</label>
+            {{ status_form.payment_status }}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Carrier</label>
+            {{ status_form.carrier }}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tracking Number</label>
+            {{ status_form.tracking_number }}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Internal Status Change Comment</label>
+            {{ status_form.comment }}
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full">
+            Save Changes &rarr;
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Customer & Delivery Snapshot -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Customer & Destination</h3>
+      </div>
+      <div class="card-body" style="font-size:0.9rem; line-height:1.6;">
+        <div style="font-weight:700; color:#0f172a; font-size:1rem; margin-bottom:0.25rem;">{{ order.customer_name }}</div>
+        <div>📧 <a href="mailto:{{ order.customer_email }}">{{ order.customer_email }}</a></div>
+        <div>📞 {{ order.customer_phone }}</div>
+
+        <div style="border-top:1px solid #e2e8f0; margin-top:1rem; padding-top:1rem;">
+          <strong style="color:#64748b; font-size:0.75rem; text-transform:uppercase;">Shipping Address</strong>
+          <div style="margin-top:0.25rem; color:#334155;">
+            {{ order.shipping_street }}{% if order.shipping_apartment %}, {{ order.shipping_apartment }}{% endif %}<br>
+            {{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}<br>
+            {{ order.shipping_country }}
+          </div>
+        </div>
+
+        {% if order.notes %}
+        <div style="border-top:1px solid #e2e8f0; margin-top:1rem; padding-top:1rem;">
+          <strong style="color:#64748b; font-size:0.75rem; text-transform:uppercase;">Delivery Instructions</strong>
+          <div style="margin-top:0.25rem; color:#475569; font-style:italic;">
+            "{{ order.notes }}"
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

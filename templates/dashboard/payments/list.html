@@ -1,0 +1,156 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Payment Transactions & Gateways | ApexStore Management{% endblock %}
+{% block header_title %}Payment Transactions & Refunds{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <h1 class="page-title">Payment Transactions & Audit</h1>
+    <div class="page-subtitle">Track gateway authorizations, settled amounts, transaction IDs, and refund logs</div>
+  </div>
+</div>
+
+<!-- Search & Status Filter -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body" style="padding:1.25rem;">
+    <form method="GET" style="display:flex; gap:1rem; align-items:flex-end;">
+      <div class="form-group" style="flex:1; margin-bottom:0;">
+        <label class="form-label">Search Transactions</label>
+        <input type="text" name="q" value="{{ query }}" placeholder="Transaction ID, Order #, or customer name..." class="form-control">
+      </div>
+
+      <div class="form-group" style="width:200px; margin-bottom:0;">
+        <label class="form-label">Payment Status</label>
+        <select name="status" class="form-select">
+          <option value="">All Statuses</option>
+          <option value="success" {% if status_filter == 'success' %}selected{% endif %}>Success / Paid</option>
+          <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+          <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+          <option value="refunded" {% if status_filter == 'refunded' %}selected{% endif %}>Refunded</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-secondary">Filter</button>
+      <a href="{% url 'dashboard:payment_transactions' %}" class="btn btn-outline">Reset</a>
+    </form>
+  </div>
+</div>
+
+<!-- Payments Table -->
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">All Customer Payment Transactions</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Transaction ID</th>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Payment Method</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Timestamp</th>
+          <th style="text-align:right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pay in page_obj %}
+        <tr>
+          <td>
+            <code style="font-weight:700; color:#2563eb; font-size:0.9rem;">{{ pay.transaction_id }}</code>
+          </td>
+          <td>
+            <a href="{% url 'dashboard:order_detail' pk=pay.order.pk %}" style="font-weight:700; color:#0f172a;">
+              {{ pay.order.order_number }}
+            </a>
+          </td>
+          <td>
+            <div style="font-weight:600; color:#0f172a;">{{ pay.order.customer_name }}</div>
+            <div style="font-size:0.75rem; color:#64748b;">{{ pay.order.customer_email }}</div>
+          </td>
+          <td style="font-size:0.875rem; color:#475569;">{{ pay.payment_method }}</td>
+          <td>
+            <strong style="font-size:1.05rem; color:#0f172a;">{{ currency_symbol }}{{ pay.amount }}</strong>
+          </td>
+          <td>
+            <span class="status-badge badge-{{ pay.status }}">
+              {{ pay.get_status_display }}
+            </span>
+          </td>
+          <td style="font-size:0.85rem; color:#64748b;">
+            {{ pay.created_at|date:"M d, Y H:i" }}
+          </td>
+          <td style="text-align:right;">
+            <a href="{% url 'dashboard:order_detail' pk=pay.order.pk %}" class="btn btn-secondary btn-sm">
+              View Order &rarr;
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center; padding:3rem; color:#64748b;">No payment transactions recorded matching your search.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div style="display:flex; justify-content:center; align-items:center; gap:0.5rem; padding:1.25rem;">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&status={{ status_filter }}" class="btn btn-secondary btn-sm">&larr; Previous</a>
+    {% endif %}
+    <span style="font-size:0.875rem; color:#64748b;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&status={{ status_filter }}" class="btn btn-secondary btn-sm">Next &rarr;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Refund Log Table -->
+{% if refunds %}
+<div class="card" style="border-top:3px solid #dc2626;">
+  <div class="card-header" style="background:#fef2f2;">
+    <h3 class="card-title" style="color:#991b1b;">Processed Refunds</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Refund ID</th>
+          <th>Order #</th>
+          <th>Amount Refunded</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Staff Authorization</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ref in refunds %}
+        <tr>
+          <td><code style="color:#dc2626; font-weight:700;">{{ ref.refund_id }}</code></td>
+          <td>
+            <a href="{% url 'dashboard:order_detail' pk=ref.order.pk %}" style="font-weight:700; color:#0f172a;">
+              {{ ref.order.order_number }}
+            </a>
+          </td>
+          <td><strong style="color:#b91c1c;">{{ currency_symbol }}{{ ref.amount }}</strong></td>
+          <td style="font-size:0.875rem; color:#475569;">{{ ref.reason }}</td>
+          <td><span class="status-badge badge-delivered">{{ ref.get_status_display }}</span></td>
+          <td style="font-size:0.85rem; color:#64748b;">{{ ref.created_by.username|default:"System" }}</td>
+          <td style="font-size:0.85rem; color:#64748b;">{{ ref.created_at|date:"M d, Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

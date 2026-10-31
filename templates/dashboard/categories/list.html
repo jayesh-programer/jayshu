@@ -1,0 +1,73 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Category Management | ApexStore Management{% endblock %}
+{% block header_title %}Category Management{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <h1 class="page-title">Categories & Departments</h1>
+    <div class="page-subtitle">Organize products into hierarchical categories and subcategories</div>
+  </div>
+  <div>
+    <a href="{% url 'dashboard:category_create' %}" class="btn btn-primary">+ Add New Category</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Category Name</th>
+          <th>Parent Category</th>
+          <th>Slug</th>
+          <th>Products Count</th>
+          <th>Status</th>
+          <th style="text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categories %}
+        <tr>
+          <td>
+            <div style="font-weight:700; color:#0f172a;">
+              {% if cat.parent %}&nbsp;&nbsp;&nbsp;&nbsp;↳ {% endif %}{{ cat.name }}
+            </div>
+          </td>
+          <td>
+            {% if cat.parent %}
+              <span style="color:#64748b; font-size:0.85rem;">{{ cat.parent.name }}</span>
+            {% else %}
+              <strong style="color:#2563eb; font-size:0.85rem;">Top-Level</strong>
+            {% endif %}
+          </td>
+          <td><code>{{ cat.slug }}</code></td>
+          <td><strong>{{ cat.product_count }}</strong> items</td>
+          <td>
+            {% if cat.is_active %}
+              <span style="background:#dcfce7; color:#15803d; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:9999px;">Active</span>
+            {% else %}
+              <span style="background:#fee2e2; color:#991b1b; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:9999px;">Inactive</span>
+            {% endif %}
+          </td>
+          <td style="text-align:right;">
+            <div style="display:inline-flex; gap:0.4rem;">
+              <a href="{% url 'dashboard:category_edit' pk=cat.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+              <form action="{% url 'dashboard:category_delete' pk=cat.pk %}" method="POST" onsubmit="return confirm('Delete category?');" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline btn-sm" style="color:#dc2626; border-color:#fca5a5;">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align:center; padding:3rem; color:#64748b;">No categories created yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

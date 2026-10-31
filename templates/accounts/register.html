@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Account | ApexStore{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:540px;">
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:2.5rem; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); margin:2rem 0;">
+
+    <div style="text-align:center; margin-bottom:2rem;">
+      <h1 style="font-size:1.85rem; font-weight:800; color:#0f172a; margin-bottom:0.4rem;">Create Account</h1>
+      <p style="color:#64748b; font-size:0.95rem;">Join ApexStore to track orders, save wishlists, and checkout faster.</p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}<div class="errorlist">{{ form.first_name.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}<div class="errorlist">{{ form.last_name.errors }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Username *</label>
+        {{ form.username }}
+        {% if form.username.errors %}<div class="errorlist">{{ form.username.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address *</label>
+        {{ form.email }}
+        {% if form.email.errors %}<div class="errorlist">{{ form.email.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Phone Number (optional)</label>
+        {{ form.phone }}
+        {% if form.phone.errors %}<div class="errorlist">{{ form.phone.errors }}</div>{% endif %}
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          {{ form.password }}
+          {% if form.password.errors %}<div class="errorlist">{{ form.password.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Confirm Password *</label>
+          {{ form.confirm_password }}
+          {% if form.confirm_password.errors %}<div class="errorlist">{{ form.confirm_password.errors }}</div>{% endif %}
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:1rem;">
+        Create Account &rarr;
+      </button>
+    </form>
+
+    <div style="text-align:center; margin-top:2rem; padding-top:1.5rem; border-top:1px solid #e2e8f0; font-size:0.9rem; color:#64748b;">
+      Already registered? 
+      <a href="{% url 'accounts:login' %}" style="font-weight:700; color:#2563eb;">Sign In</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

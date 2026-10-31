@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Secure Checkout | ApexStore{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:1100px;">
+  <div style="margin-bottom:2rem;">
+    <h1 style="font-size:2rem; font-weight:800; color:#0f172a; margin-bottom:0.25rem;">Checkout & Fulfillment</h1>
+    <p style="color:#64748b;">Please enter your delivery destination and select a payment method.</p>
+  </div>
+
+  <form method="POST" id="checkout-form">
+    {% csrf_token %}
+
+    <div style="display:grid; grid-template-columns: 1fr 380px; gap:2.5rem; align-items:start;">
+
+      <!-- Left: Delivery Details & Payment -->
+      <div style="display:flex; flex-direction:column; gap:2rem;">
+
+        <!-- 1. Customer Information -->
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:2rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.5rem;">
+            <div style="width:28px; height:28px; border-radius:9999px; background:#2563eb; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem;">1</div>
+            <h2 style="font-size:1.25rem; font-weight:700; color:#0f172a;">Customer Information</h2>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Full Name *</label>
+              {{ form.customer_name }}
+              {% if form.customer_name.errors %}<div class="errorlist">{{ form.customer_name.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email Address *</label>
+              {{ form.customer_email }}
+              {% if form.customer_email.errors %}<div class="errorlist">{{ form.customer_email.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Phone Number *</label>
+              {{ form.customer_phone }}
+              {% if form.customer_phone.errors %}<div class="errorlist">{{ form.customer_phone.errors }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Shipping Address -->
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:2rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.5rem;">
+            <div style="width:28px; height:28px; border-radius:9999px; background:#2563eb; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem;">2</div>
+            <h2 style="font-size:1.25rem; font-weight:700; color:#0f172a;">Delivery Address</h2>
+          </div>
+
+          <!-- Saved Address Auto-fill for logged in customers -->
+          {% if saved_addresses %}
+          <div style="margin-bottom:1.25rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:1rem;">
+            <label class="form-label" style="margin-bottom:0.4rem;">Select from Saved Addresses:</label>
+            <select id="saved-address-selector" class="form-select" onchange="fillSavedAddress(this);">
+              <option value="">-- Choose a saved address --</option>
+              {% for addr in saved_addresses %}
+              <option value="{{ addr.id }}"
+                data-name="{{ addr.full_name }}"
+                data-phone="{{ addr.phone }}"
+                data-street="{{ addr.street_address }}"
+                data-apt="{{ addr.apartment }}"
+                data-city="{{ addr.city }}"
+                data-state="{{ addr.state }}"
+                data-zip="{{ addr.postal_code }}"
+                data-country="{{ addr.country }}">
+                {{ addr.full_name }} - {{ addr.street_address }}, {{ addr.city }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+
+          <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1rem;">
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Street Address *</label>
+              {{ form.shipping_street }}
+              {% if form.shipping_street.errors %}<div class="errorlist">{{ form.shipping_street.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Apartment, Suite, Unit (optional)</label>
+              {{ form.shipping_apartment }}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">City *</label>
+              {{ form.shipping_city }}
+              {% if form.shipping_city.errors %}<div class="errorlist">{{ form.shipping_city.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">State / Province *</label>
+              {{ form.shipping_state }}
+              {% if form.shipping_state.errors %}<div class="errorlist">{{ form.shipping_state.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Postal / ZIP Code *</label>
+              {{ form.shipping_postal_code }}
+              {% if form.shipping_postal_code.errors %}<div class="errorlist">{{ form.shipping_postal_code.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Country *</label>
+              {{ form.shipping_country }}
+              {% if form.shipping_country.errors %}<div class="errorlist">{{ form.shipping_country.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:0.5rem;">
+            <label class="form-label">Order Instructions / Delivery Notes</label>
+            {{ form.notes }}
+          </div>
+        </div>
+
+        <!-- 3. Payment Method -->
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:2rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.5rem;">
+            <div style="width:28px; height:28px; border-radius:9999px; background:#2563eb; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem;">3</div>
+            <h2 style="font-size:1.25rem; font-weight:700; color:#0f172a;">Payment Option</h2>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
+            <!-- COD Option -->
+            <label style="display:flex; align-items:center; gap:1rem; padding:1rem; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer; transition:all 0.2s;" id="label-cod">
+              <input type="radio" name="payment_method" value="cod" checked onchange="togglePaymentFields(this);" style="width:1.2rem; height:1.2rem;">
+              <div>
+                <strong style="display:block; color:#0f172a; font-size:0.95rem;">💵 Cash on Delivery (COD)</strong>
+                <span style="font-size:0.8125rem; color:#64748b;">Pay with physical cash or mobile terminal upon doorstep package arrival.</span>
+              </div>
+            </label>
+
+            <!-- Card Simulation Option -->
+            <label style="display:flex; align-items:center; gap:1rem; padding:1rem; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer; transition:all 0.2s;" id="label-card">
+              <input type="radio" name="payment_method" value="card_simulated" onchange="togglePaymentFields(this);" style="width:1.2rem; height:1.2rem;">
+              <div>
+                <strong style="display:block; color:#0f172a; font-size:0.95rem;">💳 Online Payment (Credit / Debit Card)</strong>
+                <span style="font-size:0.8125rem; color:#64748b;">Instant automated processing via simulated secure card gateway.</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Card Details Container (Revealed when card is selected) -->
+          <div id="card-details-box" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:1.25rem; margin-top:1rem;">
+            <div style="font-size:0.8125rem; font-weight:700; color:#1e40af; background:#eff6ff; padding:0.5rem 0.75rem; border-radius:6px; margin-bottom:1rem;">
+              🛡️ Demo Payment Mode: Enter any test 16-digit card number (e.g. 4242 4242 4242 4242)
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Card Number</label>
+              {{ form.card_number }}
+              {% if form.card_number.errors %}<div class="errorlist">{{ form.card_number.errors }}</div>{% endif %}
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+              <div class="form-group">
+                <label class="form-label">Expiry Date</label>
+                {{ form.card_expiry }}
+              </div>
+              <div class="form-group">
+                <label class="form-label">CVV / CVC</label>
+                {{ form.card_cvv }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: Compact Order Summary -->
+      <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:1.5rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); position:sticky; top:5.5rem;">
+        <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:1.25rem;">Order Review</h3>
+
+        <div style="display:flex; flex-direction:column; gap:0.75rem; max-height:220px; overflow-y:auto; margin-bottom:1.25rem; padding-right:0.25rem;">
+          {% for item in cart_items %}
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.875rem;">
+            <div style="max-width:200px;">
+              <span style="font-weight:600; color:#0f172a;">{{ item.quantity }}x {{ item.product.name }}</span>
+              {% if item.variant %}<div style="font-size:0.75rem; color:#64748b;">{{ item.variant.name }}: {{ item.variant.value }}</div>{% endif %}
+            </div>
+            <span style="font-weight:700; color:#0f172a;">{{ currency_symbol }}{{ item.line_total }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div style="border-top:1px solid #e2e8f0; padding-top:1rem; display:flex; flex-direction:column; gap:0.6rem; font-size:0.9rem;">
+          <div style="display:flex; justify-content:space-between; color:#64748b;">
+            <span>Subtotal</span>
+            <span>{{ currency_symbol }}{{ subtotal }}</span>
+          </div>
+
+          {% if discount > 0 %}
+          <div style="display:flex; justify-content:space-between; color:#16a34a; font-weight:600;">
+            <span>Discount ({{ coupon.code }})</span>
+            <span>-{{ currency_symbol }}{{ discount }}</span>
+          </div>
+          {% endif %}
+
+          <div style="display:flex; justify-content:space-between; color:#64748b;">
+            <span>Shipping</span>
+            <span>{% if shipping == 0 %}<strong style="color:#16a34a;">FREE</strong>{% else %}{{ currency_symbol }}{{ shipping }}{% endif %}</span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; color:#64748b;">
+            <span>Tax</span>
+            <span>{{ currency_symbol }}{{ tax }}</span>
+          </div>
+        </div>
+
+        <div style="border-top:2px solid #0f172a; margin-top:1rem; padding-top:1rem; display:flex; justify-content:space-between; align-items:baseline;">
+          <span style="font-size:1.1rem; font-weight:800; color:#0f172a;">Total Due</span>
+          <span style="font-size:1.75rem; font-weight:800; color:#2563eb;">{{ currency_symbol }}{{ grand_total }}</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:1.5rem;" id="btn-place-order">
+          Confirm & Place Order &rarr;
+        </button>
+
+        <div style="margin-top:1rem; text-align:center; font-size:0.75rem; color:#94a3b8;">
+          By placing your order you agree to ApexStore terms and verified delivery policies.
+        </div>
+      </div>
+
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePaymentFields(radio) {
+  const cardBox = document.getElementById('card-details-box');
+  if (radio.value === 'card_simulated') {
+    cardBox.style.display = 'block';
+  } else {
+    cardBox.style.display = 'none';
+  }
+}
+
+function fillSavedAddress(select) {
+  const opt = select.options[select.selectedIndex];
+  if (!opt.value) return;
+
+  const form = document.getElementById('checkout-form');
+  if (opt.dataset.name) form.querySelector('[name="customer_name"]').value = opt.dataset.name;
+  if (opt.dataset.phone) form.querySelector('[name="customer_phone"]').value = opt.dataset.phone;
+  if (opt.dataset.street) form.querySelector('[name="shipping_street"]').value = opt.dataset.street;
+  if (opt.dataset.apt) form.querySelector('[name="shipping_apartment"]').value = opt.dataset.apt;
+  if (opt.dataset.city) form.querySelector('[name="shipping_city"]').value = opt.dataset.city;
+  if (opt.dataset.state) form.querySelector('[name="shipping_state"]').value = opt.dataset.state;
+  if (opt.dataset.zip) form.querySelector('[name="shipping_postal_code"]').value = opt.dataset.zip;
+  if (opt.dataset.country) form.querySelector('[name="shipping_country"]').value = opt.dataset.country;
+}
+</script>
+{% endblock %}

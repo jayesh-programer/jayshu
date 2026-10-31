@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}My Saved Wishlist | ApexStore{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="margin-bottom:2rem;">
+    <h1 style="font-size:2rem; font-weight:800; color:#0f172a; margin-bottom:0.5rem;">My Wishlist</h1>
+    <p style="color:#64748b;">Items you have saved for later.</p>
+  </div>
+
+  {% if wishlist_items %}
+  <div class="products-grid">
+    {% for item in wishlist_items %}
+      {% include 'storefront/_product_card.html' with product=item.product %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:4rem 2rem; text-align:center;">
+    <div style="font-size:3rem; margin-bottom:1rem;">❤️</div>
+    <h3 style="font-size:1.4rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem;">Your wishlist is empty</h3>
+    <p style="color:#64748b; margin-bottom:1.5rem;">Browse products and click the heart icon on any card to save it for later.</p>
+    <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Discover Products</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

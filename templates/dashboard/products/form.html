@@ -1,0 +1,209 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}{{ action }} Product | ApexStore Management{% endblock %}
+{% block header_title %}{{ action }} Product{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <div style="font-size:0.85rem; color:#64748b; margin-bottom:0.25rem;">
+      <a href="{% url 'dashboard:product_list' %}">&larr; Back to Products</a>
+    </div>
+    <h1 class="page-title">{{ action }} Product</h1>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 2fr 1fr; gap:2rem; align-items:start;">
+
+  <!-- Main Product Information Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">General Specifications & Pricing</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="update_product" value="1">
+
+        <div class="form-group">
+          <label class="form-label">Product Name *</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="errorlist">{{ form.name.errors }}</div>{% endif %}
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            {{ form.category }}
+            {% if form.category.errors %}<div class="errorlist">{{ form.category.errors }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">SKU (Stock Keeping Unit) *</label>
+            {{ form.sku }}
+            {% if form.sku.errors %}<div class="errorlist">{{ form.sku.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label class="form-label">Regular Price ({{ currency_symbol }}) *</label>
+            {{ form.price }}
+            {% if form.price.errors %}<div class="errorlist">{{ form.price.errors }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Discount Price ({{ currency_symbol }}) (Optional)</label>
+            {{ form.discount_price }}
+            {% if form.discount_price.errors %}<div class="errorlist">{{ form.discount_price.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label class="form-label">Initial Stock Quantity *</label>
+            {{ form.stock }}
+            {% if form.stock.errors %}<div class="errorlist">{{ form.stock.errors }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Low-Stock Alert Threshold *</label>
+            {{ form.low_stock_threshold }}
+            {% if form.low_stock_threshold.errors %}<div class="errorlist">{{ form.low_stock_threshold.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Brief Summary (1-2 sentences)</label>
+          {{ form.short_description }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Detailed Product Description *</label>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="errorlist">{{ form.description.errors }}</div>{% endif %}
+        </div>
+
+        {% if action == 'Add' %}
+        <div class="form-group" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:1rem;">
+          <label class="form-label">Primary Product Image</label>
+          {{ image_form.image }}
+        </div>
+        {% endif %}
+
+        <div style="display:flex; gap:2rem; margin:1.5rem 0;">
+          <label class="form-check">
+            {{ form.is_active }}
+            <span>Active & Visible in Store</span>
+          </label>
+          <label class="form-check">
+            {{ form.is_featured }}
+            <span>Feature on Home Showcase</span>
+          </label>
+        </div>
+
+        <div style="display:flex; gap:1rem; margin-top:2rem;">
+          <button type="submit" class="btn btn-primary">Save Product</button>
+          <a href="{% url 'dashboard:product_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sidebar: Images & Variants (Only in Edit mode) -->
+  {% if action == 'Edit' %}
+  <div style="display:flex; flex-direction:column; gap:2rem;">
+
+    <!-- Image Gallery Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Gallery Images</h3>
+      </div>
+      <div class="card-body">
+        {% if images %}
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap:0.75rem; margin-bottom:1.5rem;">
+          {% for img in images %}
+          <div style="position:relative; aspect-ratio:1/1; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+            <img src="{{ img.image.url }}" alt="" style="width:100%; height:100%; object-fit:cover;">
+            <form action="{% url 'dashboard:product_image_delete' pk=img.pk %}" method="POST" style="position:absolute; top:2px; right:2px;" onsubmit="return confirm('Delete image?');">
+              {% csrf_token %}
+              <button type="submit" style="background:rgba(220,38,38,0.85); color:#fff; border:none; border-radius:4px; padding:2px 5px; font-size:0.7rem; cursor:pointer;">✕</button>
+            </form>
+            {% if img.is_primary %}
+              <span style="position:absolute; bottom:2px; left:2px; background:#2563eb; color:#fff; font-size:0.65rem; padding:1px 4px; border-radius:3px;">Primary</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="add_image" value="1">
+          <div class="form-group">
+            <label class="form-label" style="font-size:0.85rem;">Upload Additional Image</label>
+            {{ image_form.image }}
+          </div>
+          <button type="submit" class="btn btn-secondary btn-sm btn-full">+ Upload Image</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Variants Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Product Variants</h3>
+      </div>
+      <div class="card-body">
+        {% if variants %}
+        <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.5rem;">
+          {% for var in variants %}
+          <div style="border:1px solid #e2e8f0; border-radius:8px; padding:0.6rem 0.85rem; display:flex; justify-content:space-between; align-items:center; font-size:0.85rem;">
+            <div>
+              <strong>{{ var.name }}:</strong> {{ var.value }}
+              <div style="color:#64748b; font-size:0.75rem;">+{{ currency_symbol }}{{ var.additional_price }} • Stock: {{ var.stock }}</div>
+            </div>
+            <form action="{% url 'dashboard:product_variant_delete' pk=var.pk %}" method="POST" onsubmit="return confirm('Delete variant?');">
+              {% csrf_token %}
+              <button type="submit" style="background:none; border:none; color:#ef4444; cursor:pointer;">🗑️</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Add Variant Form -->
+        <form method="POST" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:1rem;">
+          {% csrf_token %}
+          <input type="hidden" name="add_variant" value="1">
+          <div style="font-weight:700; font-size:0.875rem; margin-bottom:0.75rem; color:#0f172a;">Add Variant</div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem; margin-bottom:0.5rem;">
+            <div>
+              <label class="form-label" style="font-size:0.75rem;">Name (e.g. Size)</label>
+              {{ variant_form.name }}
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.75rem;">Value (e.g. XL)</label>
+              {{ variant_form.value }}
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem; margin-bottom:0.75rem;">
+            <div>
+              <label class="form-label" style="font-size:0.75rem;">Add Price ({{ currency_symbol }})</label>
+              {{ variant_form.additional_price }}
+            </div>
+            <div>
+              <label class="form-label" style="font-size:0.75rem;">Stock</label>
+              {{ variant_form.stock }}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-secondary btn-sm btn-full">+ Add Variant</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

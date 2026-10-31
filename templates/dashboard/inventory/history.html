@@ -1,0 +1,77 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Inventory Transaction Logs | ApexStore Management{% endblock %}
+{% block header_title %}Inventory Transaction Audit Log{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <div style="font-size:0.85rem; color:#64748b; margin-bottom:0.25rem;">
+      <a href="{% url 'dashboard:inventory_list' %}">&larr; Back to Inventory</a>
+    </div>
+    <h1 class="page-title">Stock Transaction Logs</h1>
+    <div class="page-subtitle">Historical audit trail of all warehouse additions, deductions, sales, and restorations</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Product / Variant</th>
+          <th>Transaction Type</th>
+          <th>Qty Change</th>
+          <th>Before &rarr; After</th>
+          <th>Note / Reference</th>
+          <th>Staff / Trigger</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in page_obj %}
+        <tr>
+          <td style="font-size:0.85rem; color:#64748b;">{{ tx.created_at|date:"M d, Y H:i:s" }}</td>
+          <td>
+            <div style="font-weight:700; color:#0f172a;">{{ tx.product.name }}</div>
+            {% if tx.variant %}<div style="font-size:0.75rem; color:#64748b;">{{ tx.variant.name }}: {{ tx.variant.value }}</div>{% endif %}
+          </td>
+          <td>
+            <span class="status-badge {% if tx.quantity > 0 %}badge-delivered{% else %}badge-cancelled{% endif %}">
+              {{ tx.get_change_type_display }}
+            </span>
+          </td>
+          <td>
+            <strong style="font-size:1.05rem; color:{% if tx.quantity > 0 %}#16a34a{% else %}#dc2626{% endif %};">
+              {% if tx.quantity > 0 %}+{{ tx.quantity }}{% else %}{{ tx.quantity }}{% endif %}
+            </strong>
+          </td>
+          <td style="font-size:0.875rem; color:#475569;">
+            {{ tx.previous_stock }} &rarr; <strong>{{ tx.new_stock }}</strong>
+          </td>
+          <td style="font-size:0.85rem; color:#334155;">{{ tx.note|default:"-" }}</td>
+          <td style="font-size:0.85rem; color:#64748b;">{{ tx.created_by.username|default:"Customer Checkout / System" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center; padding:3rem; color:#64748b;">No inventory transactions logged yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div style="display:flex; justify-content:center; align-items:center; gap:0.5rem; padding:1.25rem;">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary btn-sm">&larr; Previous</a>
+    {% endif %}
+    <span style="font-size:0.875rem; color:#64748b;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary btn-sm">Next &rarr;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

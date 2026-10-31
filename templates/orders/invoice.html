@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice #{{ order.order_number }} | ApexStore</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #1e293b;
+      line-height: 1.5;
+      padding: 40px;
+      max-width: 850px;
+      margin: 0 auto;
+      background: #ffffff;
+    }
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 24px;
+      margin-bottom: 30px;
+    }
+    .brand {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .brand span { color: #2563eb; }
+    .inv-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: #0f172a;
+      text-align: right;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    .meta-box h4 {
+      font-size: 13px;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+    th {
+      background: #f1f5f9;
+      text-align: left;
+      padding: 12px;
+      font-size: 13px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 14px;
+    }
+    .totals-box {
+      width: 300px;
+      margin-left: auto;
+      margin-bottom: 40px;
+    }
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+    .totals-row.grand {
+      font-size: 18px;
+      font-weight: 800;
+      border-top: 2px solid #0f172a;
+      padding-top: 10px;
+      color: #0f172a;
+    }
+    .no-print-bar {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #eff6ff;
+      padding: 12px 20px;
+      border-radius: 8px;
+    }
+    @media print {
+      body { padding: 0; }
+      .no-print-bar { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print-bar">
+    <div>📄 Official Commercial Purchase Invoice</div>
+    <div>
+      <button onclick="window.print();" style="background:#2563eb; color:#fff; border:none; padding:8px 16px; border-radius:6px; font-weight:700; cursor:pointer;">
+        🖨️ Print / Save to PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="invoice-header">
+    <div>
+      <div class="brand">Apex<span>Store</span></div>
+      <div style="font-size:13px; color:#64748b; margin-top:4px;">
+        ApexStore Retail & Logistics Inc.<br>
+        100 Retail Plaza, Tech Corridor<br>
+        San Francisco, CA 94105, United States<br>
+        support@apexstore.local | +1 (800) 555-0199
+      </div>
+    </div>
+    <div>
+      <div class="inv-title">INVOICE</div>
+      <div style="text-align:right; font-size:14px; color:#475569;">
+        <strong>Invoice #:</strong> INV-{{ order.order_number }}<br>
+        <strong>Order #:</strong> {{ order.order_number }}<br>
+        <strong>Date:</strong> {{ order.created_at|date:"F d, Y" }}<br>
+        <strong>Status:</strong> {{ order.get_payment_status_display }}
+      </div>
+    </div>
+  </div>
+
+  <div class="meta-grid">
+    <div class="meta-box">
+      <h4>Billed & Shipped To:</h4>
+      <div style="font-size:14px;">
+        <strong>{{ order.customer_name }}</strong><br>
+        {{ order.shipping_street }}{% if order.shipping_apartment %}, {{ order.shipping_apartment }}{% endif %}<br>
+        {{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}<br>
+        {{ order.shipping_country }}<br>
+        Phone: {{ order.customer_phone }}<br>
+        Email: {{ order.customer_email }}
+      </div>
+    </div>
+    <div class="meta-box">
+      <h4>Payment & Shipment:</h4>
+      <div style="font-size:14px;">
+        <strong>Payment Method:</strong> {{ order.get_payment_method_display }}<br>
+        <strong>Payment Status:</strong> {{ order.get_payment_status_display }}<br>
+        {% if order.shipment %}
+        <strong>Carrier:</strong> {{ order.shipment.carrier }}<br>
+        <strong>Tracking Code:</strong> {{ order.shipment.tracking_number|default:"Pending" }}<br>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Unit Price</th>
+        <th style="text-align:center;">Quantity</th>
+        <th style="text-align:right;">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in order.items.all %}
+      <tr>
+        <td>
+          <strong>{{ item.product_name }}</strong>
+          {% if item.variant_info %}<br><span style="font-size:12px; color:#64748b;">{{ item.variant_info }}</span>{% endif %}
+        </td>
+        <td>{{ currency_symbol }}{{ item.unit_price }}</td>
+        <td style="text-align:center;">{{ item.quantity }}</td>
+        <td style="text-align:right; font-weight:700;">{{ currency_symbol }}{{ item.line_total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals-box">
+    <div class="totals-row">
+      <span>Subtotal:</span>
+      <span>{{ currency_symbol }}{{ order.subtotal }}</span>
+    </div>
+    {% if order.discount_amount > 0 %}
+    <div class="totals-row" style="color:#16a34a;">
+      <span>Discount:</span>
+      <span>-{{ currency_symbol }}{{ order.discount_amount }}</span>
+    </div>
+    {% endif %}
+    <div class="totals-row">
+      <span>Shipping:</span>
+      <span>{% if order.shipping_fee == 0 %}FREE{% else %}{{ currency_symbol }}{{ order.shipping_fee }}{% endif %}</span>
+    </div>
+    <div class="totals-row">
+      <span>GST / Tax:</span>
+      <span>{{ currency_symbol }}{{ order.tax_amount }}</span>
+    </div>
+    <div class="totals-row grand">
+      <span>Final Total:</span>
+      <span>{{ currency_symbol }}{{ order.total }}</span>
+    </div>
+  </div>
+
+  <div style="border-top:1px solid #e2e8f0; padding-top:20px; text-align:center; font-size:12px; color:#94a3b8;">
+    Thank you for shopping with ApexStore! For inquiries regarding this invoice, please contact support@apexstore.local with your order number.
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Edit Staff Role: {{ staff_user.username }} | ApexStore{% endblock %}
+{% block header_title %}Assign Staff Access Role{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <div style="font-size:0.85rem; color:#64748b; margin-bottom:0.25rem;">
+      <a href="{% url 'dashboard:staff_list' %}">&larr; Back to Staff List</a>
+    </div>
+    <h1 class="page-title">Modify Staff Role: {{ staff_user.username }}</h1>
+    <div class="page-subtitle">{{ staff_user.get_full_name|default:staff_user.username }} ({{ staff_user.email }})</div>
+  </div>
+</div>
+
+<div class="card" style="max-width:600px;">
+  <div class="card-body">
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label">Assigned Role</label>
+        {{ form.role }}
+      </div>
+
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:1rem; font-size:0.85rem; color:#475569; margin:1.25rem 0; line-height:1.5;">
+        <strong style="color:#0f172a; display:block; margin-bottom:4px;">Role Capabilities Reference:</strong>
+        • <strong>Super Admin:</strong> Full unrestricted access.<br>
+        • <strong>Manager:</strong> Products, orders, inventory, and reports.<br>
+        • <strong>Inventory Staff:</strong> Products and warehouse stock management.<br>
+        • <strong>Order Staff:</strong> Order fulfillment and shipment processing.<br>
+        • <strong>Support Staff:</strong> Customer care and support tickets.
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+        <button type="submit" class="btn btn-primary">Update Role</button>
+        <a href="{% url 'dashboard:staff_list' %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}{{ action }} Category | ApexStore Management{% endblock %}
+{% block header_title %}{{ action }} Category{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <div style="font-size:0.85rem; color:#64748b; margin-bottom:0.25rem;">
+      <a href="{% url 'dashboard:category_list' %}">&larr; Back to Categories</a>
+    </div>
+    <h1 class="page-title">{{ action }} Category</h1>
+  </div>
+</div>
+
+<div class="card" style="max-width:680px;">
+  <div class="card-body">
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label">Category Name *</label>
+        {{ form.name }}
+        {% if form.name.errors %}<div class="errorlist">{{ form.name.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Parent Category (Leave blank for top-level category)</label>
+        {{ form.parent }}
+        {% if form.parent.errors %}<div class="errorlist">{{ form.parent.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        {{ form.description }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Category Icon / Image</label>
+        {{ form.image }}
+      </div>
+
+      <div style="margin:1.25rem 0;">
+        <label class="form-check">
+          {{ form.is_active }}
+          <span>Active in Store Navigation</span>
+        </label>
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+        <button type="submit" class="btn btn-primary">{{ action }} Category</button>
+        <a href="{% url 'dashboard:category_list' %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

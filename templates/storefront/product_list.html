@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Products Catalog | ApexStore{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Breadcrumbs & Header -->
+  <div style="margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <div style="font-size:0.85rem; color:#64748b; margin-bottom:0.25rem;">
+        <a href="{% url 'catalog:home' %}">Home</a> &gt; 
+        {% if current_category %}
+          <a href="{% url 'catalog:product_list' %}">Catalog</a> &gt; <span>{{ current_category.name }}</span>
+        {% else %}
+          <span>All Products</span>
+        {% endif %}
+      </div>
+      <h1 style="font-size:1.85rem; font-weight:800; color:#0f172a;">
+        {% if current_category %}{{ current_category.name }}{% elif query %}Search: "{{ query }}"{% else %}All Products{% endif %}
+      </h1>
+      <span style="font-size:0.875rem; color:#64748b;">Showing {{ total_count }} item{{ total_count|pluralize }}</span>
+    </div>
+
+    <!-- Sorting -->
+    <form method="GET" id="sort-form" style="display:flex; align-items:center; gap:0.5rem;">
+      {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+      {% if current_category %}<input type="hidden" name="category" value="{{ current_category.slug }}">{% endif %}
+      {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
+      {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
+      {% if in_stock_only %}<input type="hidden" name="in_stock" value="{{ in_stock_only }}">{% endif %}
+
+      <label for="sort-select" style="font-size:0.875rem; font-weight:600; color:#475569;">Sort by:</label>
+      <select name="sort" id="sort-select" class="form-select" style="width:auto; padding:0.4rem 0.8rem;" onchange="document.getElementById('sort-form').submit();">
+        <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+        <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+        <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+        <option value="rating" {% if sort == 'rating' %}selected{% endif %}>Customer Rating</option>
+        <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>Alphabetical</option>
+      </select>
+    </form>
+  </div>
+
+  <!-- Layout: Sidebar + Grid -->
+  <div style="display:grid; grid-template-columns: 260px 1fr; gap:2rem; align-items:start;">
+
+    <!-- Filter Sidebar -->
+    <aside style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:1.5rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; padding-bottom:0.75rem; border-bottom:1px solid #e2e8f0;">
+        <h3 style="font-size:1.1rem; font-weight:700; color:#0f172a;">Filter By</h3>
+        <a href="{% url 'catalog:product_list' %}" style="font-size:0.8rem; color:#2563eb; font-weight:600;">Reset All</a>
+      </div>
+
+      <!-- Categories Filter -->
+      <div style="margin-bottom:1.5rem;">
+        <h4 style="font-size:0.9rem; font-weight:700; color:#334155; margin-bottom:0.75rem;">Categories</h4>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:0.4rem; font-size:0.875rem;">
+          <li>
+            <a href="{% url 'catalog:product_list' %}" style="color:{% if not current_category %}#2563eb; font-weight:700{% else %}#475569{% endif %};">
+              All Categories
+            </a>
+          </li>
+          {% for cat in categories %}
+          <li>
+            <a href="{% url 'catalog:category_detail' slug=cat.slug %}" style="color:{% if current_category and current_category.slug == cat.slug %}#2563eb; font-weight:700{% else %}#475569{% endif %}; display:flex; justify-content:space-between;">
+              <span>{{ cat.name }}</span>
+              <span style="color:#94a3b8; font-size:0.75rem;">({{ cat.product_count }})</span>
+            </a>
+            {% if cat.subcategories.all %}
+              <ul style="list-style:none; padding-left:1rem; margin-top:0.25rem; display:flex; flex-direction:column; gap:0.3rem;">
+                {% for sub in cat.subcategories.all %}
+                <li>
+                  <a href="{% url 'catalog:category_detail' slug=sub.slug %}" style="color:{% if current_category and current_category.slug == sub.slug %}#2563eb; font-weight:700{% else %}#64748b{% endif %}; font-size:0.8125rem;">
+                    ↳ {{ sub.name }}
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Price & Stock Filters Form -->
+      <form method="GET" action="{% url 'catalog:product_list' %}">
+        {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+        {% if current_category %}<input type="hidden" name="category" value="{{ current_category.slug }}">{% endif %}
+        {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+
+        <div style="margin-bottom:1.5rem;">
+          <h4 style="font-size:0.9rem; font-weight:700; color:#334155; margin-bottom:0.75rem;">Price Range</h4>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <input type="number" name="min_price" value="{{ min_price }}" placeholder="Min" class="form-control" style="padding:0.4rem;" min="0">
+            <span>-</span>
+            <input type="number" name="max_price" value="{{ max_price }}" placeholder="Max" class="form-control" style="padding:0.4rem;" min="0">
+          </div>
+        </div>
+
+        <div style="margin-bottom:1.5rem;">
+          <h4 style="font-size:0.9rem; font-weight:700; color:#334155; margin-bottom:0.75rem;">Availability</h4>
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;">
+            <input type="checkbox" name="in_stock" value="1" {% if in_stock_only == '1' %}checked{% endif %} class="form-check-input">
+            In Stock Only
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full btn-sm">Apply Filters</button>
+      </form>
+    </aside>
+
+    <!-- Main Products Grid Area -->
+    <div>
+      {% if page_obj %}
+        <div class="products-grid" style="margin-bottom:2rem;">
+          {% for prod in page_obj %}
+            {% include 'storefront/_product_card.html' with product=prod %}
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div style="display:flex; justify-content:center; align-items:center; gap:0.5rem; margin-top:2rem;">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ current_category.slug|default:'' }}&sort={{ sort }}&min_price={{ min_price }}&max_price={{ max_price }}&in_stock={{ in_stock_only }}" class="btn btn-secondary btn-sm">&larr; Previous</a>
+          {% endif %}
+
+          <span style="font-size:0.875rem; color:#64748b; padding:0 0.5rem;">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </span>
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ current_category.slug|default:'' }}&sort={{ sort }}&min_price={{ min_price }}&max_price={{ max_price }}&in_stock={{ in_stock_only }}" class="btn btn-secondary btn-sm">Next &rarr;</a>
+          {% endif %}
+        </div>
+        {% endif %}
+
+      {% else %}
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:4rem 2rem; text-align:center;">
+          <div style="font-size:3rem; margin-bottom:1rem;">🔍</div>
+          <h3 style="font-size:1.4rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem;">No products match your criteria</h3>
+          <p style="color:#64748b; margin-bottom:1.5rem;">Try adjusting your price range, searching for different keywords, or clearing selected filters.</p>
+          <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Browse All Products</a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

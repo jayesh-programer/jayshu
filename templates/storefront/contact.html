@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Support | ApexStore{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:960px;">
+  <div style="margin-bottom:2rem; text-align:center;">
+    <h1 style="font-size:2.25rem; font-weight:800; color:#0f172a; margin-bottom:0.5rem;">Get In Touch</h1>
+    <p style="color:#64748b; font-size:1.05rem;">We're here to assist with order tracking, product inquiries, returns, and technical questions.</p>
+  </div>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:2.5rem;">
+    <!-- Contact Info Card -->
+    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:2.5rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:1.75rem;">
+      <div>
+        <h3 style="font-size:1.2rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem;">Fulfillment & Operations Headquarters</h3>
+        <p style="color:#475569; font-size:0.95rem; line-height:1.6;">
+          ApexStore Logistics Hub<br>
+          100 Retail Plaza, Suite 400<br>
+          San Francisco, CA 94105, United States
+        </p>
+      </div>
+
+      <div>
+        <h3 style="font-size:1.2rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem;">Contact Channels</h3>
+        <p style="color:#475569; font-size:0.95rem; line-height:1.6;">
+          📞 <strong>Toll-Free Phone:</strong> +1 (800) 555-0199<br>
+          ✉️ <strong>General Support:</strong> support@apexstore.local<br>
+          📦 <strong>Returns Department:</strong> returns@apexstore.local<br>
+          🕒 <strong>Hours:</strong> Mon - Sat: 8:00 AM - 9:00 PM EST
+        </p>
+      </div>
+
+      <div style="background:#eff6ff; border-radius:10px; padding:1.25rem; font-size:0.875rem; color:#1e40af;">
+        💡 <strong>Are you an existing customer?</strong> You can also track your order status directly on our <a href="{% url 'orders:track' %}" style="text-decoration:underline; font-weight:700;">Order Tracking Page</a> or open a ticket from your account.
+      </div>
+    </div>
+
+    <!-- Contact Form -->
+    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:2.5rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+      <h3 style="font-size:1.25rem; font-weight:700; color:#0f172a; margin-bottom:1.25rem;">Send Us a Message</h3>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Your Name</label>
+          <input type="text" name="name" class="form-control" required placeholder="John Doe" value="{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% endif %}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" name="email" class="form-control" required placeholder="name@example.com" value="{% if user.is_authenticated %}{{ user.email }}{% endif %}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <input type="text" name="subject" class="form-control" required placeholder="Question about product or order">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Message</label>
+          <textarea name="message" class="form-control" rows="4" required placeholder="Please provide detailed information..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">Submit Message &rarr;</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

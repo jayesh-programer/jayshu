@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us | ApexStore{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:860px;">
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:3rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+    <h1 style="font-size:2.25rem; font-weight:800; color:#0f172a; margin-bottom:1.5rem;">About ApexStore</h1>
+    <p style="font-size:1.1rem; color:#475569; line-height:1.7; margin-bottom:1.5rem;">
+      ApexStore is a modern full-stack e-commerce and retail platform founded with a simple mission: to connect discerning customers with reliable, premium-grade consumer goods, cutting-edge electronics, and lifestyle apparel without friction.
+    </p>
+
+    <h2 style="font-size:1.5rem; font-weight:700; color:#0f172a; margin:2rem 0 1rem;">Engineered for Integrity</h2>
+    <p style="color:#475569; line-height:1.7; margin-bottom:1.5rem;">
+      Every order placed in our ecosystem is powered by transactional database integrity, real-time inventory validation, and strict quality control before leaving our fulfillment centers. We eliminate counterfeit merchandise and guarantee all warranties directly through authorized supply lines.
+    </p>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin:2.5rem 0;">
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:1.5rem; border-radius:10px; text-align:center;">
+        <div style="font-size:2rem; font-weight:800; color:#2563eb;">99.8%</div>
+        <div style="font-size:0.875rem; color:#64748b; font-weight:600;">On-Time Delivery Rate</div>
+      </div>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:1.5rem; border-radius:10px; text-align:center;">
+        <div style="font-size:2rem; font-weight:800; color:#16a34a;">100%</div>
+        <div style="font-size:0.875rem; color:#64748b; font-weight:600;">Authentic Products</div>
+      </div>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:1.5rem; border-radius:10px; text-align:center;">
+        <div style="font-size:2rem; font-weight:800; color:#ca8a04;">24/7</div>
+        <div style="font-size:0.875rem; color:#64748b; font-weight:600;">Dedicated Support</div>
+      </div>
+    </div>
+
+    <h2 style="font-size:1.5rem; font-weight:700; color:#0f172a; margin:2rem 0 1rem;">Our Technology & Infrastructure</h2>
+    <p style="color:#475569; line-height:1.7;">
+      Built on a clean Python Django backend with standardized SQL persistence, our architecture prioritizes deterministic concurrency controls, encrypted data pipelines, and responsive vanilla web standards.
+    </p>
+  </div>
+</div>
+{% endblock %}

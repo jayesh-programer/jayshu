@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy | ApexStore{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:860px;">
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:3rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); line-height:1.7; color:#334155;">
+    <h1 style="font-size:2.25rem; font-weight:800; color:#0f172a; margin-bottom:1.5rem;">Privacy Policy</h1>
+    <p style="font-size:0.9rem; color:#64748b; margin-bottom:2rem;">Last Updated: October 2026</p>
+
+    <h2 style="font-size:1.35rem; font-weight:700; color:#0f172a; margin:1.5rem 0 0.5rem;">1. Information We Collect</h2>
+    <p>We collect essential order fulfillment details including your name, email address, physical shipping address, phone number, and purchase transaction records. Payment card data is processed through industry-standard tokenized encryption and is never stored on our database servers.</p>
+
+    <h2 style="font-size:1.35rem; font-weight:700; color:#0f172a; margin:1.5rem 0 0.5rem;">2. How We Use Your Information</h2>
+    <p>Your information is used strictly to process orders, verify payments, generate delivery manifests for shipping carriers, calculate appropriate discounts or taxes, and respond to support inquiries.</p>
+
+    <h2 style="font-size:1.35rem; font-weight:700; color:#0f172a; margin:1.5rem 0 0.5rem;">3. Data Protection & Security</h2>
+    <p>We deploy standard security controls including HTTPS transport security, server-side parameter verification, Django CSRF countermeasures, and password hashing using PBKDF2 with SHA-256 signatures.</p>
+
+    <h2 style="font-size:1.35rem; font-weight:700; color:#0f172a; margin:1.5rem 0 0.5rem;">4. Your Privacy Rights</h2>
+    <p>You have the right to inspect, update, or request deletion of your account records by contacting our Data Protection Officer at privacy@apexstore.local.</p>
+  </div>
+</div>
+{% endblock %}

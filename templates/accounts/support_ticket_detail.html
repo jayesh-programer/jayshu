@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Ticket #{{ ticket.id }} | ApexStore{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:760px;">
+  <div style="margin-bottom:1.5rem;">
+    <a href="{% url 'accounts:support_tickets' %}" style="font-size:0.875rem; color:#64748b;">&larr; Back to Tickets</a>
+  </div>
+
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:2.5rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); margin-bottom:2rem;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+      <h1 style="font-size:1.6rem; font-weight:800; color:#0f172a;">Ticket #{{ ticket.id }}: {{ ticket.subject }}</h1>
+      <span class="status-badge badge-{{ ticket.status }}" style="font-size:0.85rem; padding:0.35rem 0.75rem;">{{ ticket.get_status_display }}</span>
+    </div>
+
+    <div style="font-size:0.875rem; color:#64748b; margin-bottom:1.5rem; border-bottom:1px solid #e2e8f0; padding-bottom:1rem;">
+      Opened on {{ ticket.created_at|date:"F d, Y \a\t g:i A" }} • Priority: <strong>{{ ticket.get_priority_display }}</strong>
+      {% if ticket.order_number %} • Order Ref: <strong>{{ ticket.order_number }}</strong>{% endif %}
+    </div>
+
+    <div style="margin-bottom:2rem;">
+      <h3 style="font-size:1rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem;">Your Request:</h3>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:1.25rem; font-size:0.95rem; line-height:1.6; color:#334155; white-space:pre-line;">
+        {{ ticket.message }}
+      </div>
+    </div>
+
+    {% if ticket.admin_response %}
+    <div style="margin-bottom:1.5rem;">
+      <h3 style="font-size:1rem; font-weight:700; color:#15803d; margin-bottom:0.5rem;">Support Staff Response:</h3>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:1.25rem; font-size:0.95rem; line-height:1.6; color:#14532d; white-space:pre-line;">
+        {{ ticket.admin_response }}
+      </div>
+    </div>
+    {% else %}
+    <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:1rem; font-size:0.875rem; color:#1e40af;">
+      ⏳ Our support agents are reviewing your request. You will see their reply here as soon as it is updated.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

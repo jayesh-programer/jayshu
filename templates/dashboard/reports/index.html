@@ -1,0 +1,155 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Financial Reports & Analytics | ApexStore Management{% endblock %}
+{% block header_title %}Reports & Business Intelligence{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <h1 class="page-title">Reports & Business Analytics</h1>
+    <div class="page-subtitle">Deterministic revenue calculations, order trends, inventory risks, and downloadable exports</div>
+  </div>
+  <div style="display:flex; gap:0.75rem;">
+    <a href="{% url 'reports:export_orders' %}" class="btn btn-primary btn-sm">📥 Export All Orders (CSV)</a>
+    <a href="{% url 'reports:export_products' %}" class="btn btn-secondary btn-sm">📥 Export Inventory (CSV)</a>
+  </div>
+</div>
+
+<!-- Sales Across Multiple Horizons -->
+<div class="stats-grid" style="margin-bottom:2rem;">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Today's Sales</span>
+      <span class="stat-value" style="color:#2563eb;">{{ currency_symbol }}{{ daily_sales|floatformat:2 }}</span>
+    </div>
+    <div class="stat-icon primary">📅</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">This Week's Sales</span>
+      <span class="stat-value" style="color:#16a34a;">{{ currency_symbol }}{{ weekly_sales|floatformat:2 }}</span>
+    </div>
+    <div class="stat-icon success">📈</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">This Month's Sales</span>
+      <span class="stat-value" style="color:#ca8a04;">{{ currency_symbol }}{{ monthly_sales|floatformat:2 }}</span>
+    </div>
+    <div class="stat-icon warning">📊</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Annual Revenue (YTD)</span>
+      <span class="stat-value" style="color:#4f46e5;">{{ currency_symbol }}{{ yearly_sales|floatformat:2 }}</span>
+    </div>
+    <div class="stat-icon indigo">🏛️</div>
+  </div>
+</div>
+
+<!-- Secondary Stats Strip (Refunds, Cancellations) -->
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1.25rem; margin-bottom:2rem;">
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:1.25rem;">
+    <div style="font-size:0.75rem; text-transform:uppercase; color:#64748b; font-weight:700;">Total Orders</div>
+    <div style="font-size:1.5rem; font-weight:800; color:#0f172a; margin-top:0.25rem;">{{ total_orders }}</div>
+  </div>
+
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:1.25rem;">
+    <div style="font-size:0.75rem; text-transform:uppercase; color:#64748b; font-weight:700;">Cancelled Orders</div>
+    <div style="font-size:1.5rem; font-weight:800; color:#dc2626; margin-top:0.25rem;">{{ cancelled_orders_count }}</div>
+  </div>
+
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:1.25rem;">
+    <div style="font-size:0.75rem; text-transform:uppercase; color:#64748b; font-weight:700;">Returned Orders</div>
+    <div style="font-size:1.5rem; font-weight:800; color:#475569; margin-top:0.25rem;">{{ returned_orders_count }}</div>
+  </div>
+
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:1.25rem;">
+    <div style="font-size:0.75rem; text-transform:uppercase; color:#64748b; font-weight:700;">Total Refunds Processed</div>
+    <div style="font-size:1.5rem; font-weight:800; color:#b91c1c; margin-top:0.25rem;">{{ currency_symbol }}{{ total_refunds|floatformat:2 }}</div>
+  </div>
+</div>
+
+<!-- 2-Column: Customer Growth & Payment Methods -->
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:2rem; margin-bottom:2rem;">
+
+  <!-- Customer Growth Bar Chart -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Customer Acquisition Trend (Last 6 Months)</h3>
+    </div>
+    <div class="card-body">
+      <div style="display:flex; align-items:flex-end; height:180px; gap:1rem; border-bottom:1px solid #e2e8f0; padding-top:1rem;">
+        {% for cg in customer_growth %}
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end;">
+          <div style="width:70%; max-width:34px; background:#10b981; border-radius:4px 4px 0 0; min-height:6px; height:{% if cg.count > 0 %}{% widthratio cg.count 20 100 %}%{% else %}6px{% endif %};"></div>
+          <span style="font-size:0.75rem; color:#64748b; margin-top:0.5rem;">{{ cg.label }}</span>
+          <span style="font-size:0.75rem; font-weight:700; color:#0f172a;">{{ cg.count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Methods Breakdown -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Payment Methods Distribution</h3>
+    </div>
+    <div class="card-body">
+      {% for pm in payment_method_stats %}
+      <div style="margin-bottom:1rem;">
+        <div style="display:flex; justify-content:space-between; font-size:0.875rem; font-weight:600; margin-bottom:0.25rem;">
+          <span>{{ pm.payment_method }}</span>
+          <span>{{ pm.count }} orders ({{ currency_symbol }}{{ pm.total_amount }})</span>
+        </div>
+        <div style="width:100%; height:8px; background:#f1f5f9; border-radius:9999px; overflow:hidden;">
+          <div style="height:100%; background:#2563eb; width:{% widthratio pm.count total_orders 100 %}%;"></div>
+        </div>
+      </div>
+      {% empty %}
+      <p style="color:#64748b; font-size:0.875rem;">No payment records logged yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Best Selling Products Table -->
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Top 10 Best-Selling Products</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Product Name</th>
+          <th>SKU</th>
+          <th>Units Sold</th>
+          <th style="text-align:right;">Generated Revenue</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in best_sellers %}
+        <tr>
+          <td><strong>#{{ forloop.counter }}</strong></td>
+          <td style="font-weight:700; color:#0f172a;">{{ b.product__name }}</td>
+          <td><code>{{ b.product__sku }}</code></td>
+          <td><strong style="color:#2563eb;">{{ b.units_sold }}</strong> units</td>
+          <td style="text-align:right; font-weight:800; color:#0f172a;">{{ currency_symbol }}{{ b.total_revenue|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align:center; padding:2rem; color:#64748b;">No sales records logged yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

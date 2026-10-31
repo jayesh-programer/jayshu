@@ -1,0 +1,146 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Product Catalog Management | ApexStore{% endblock %}
+{% block header_title %}Products & Catalog{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <h1 class="page-title">Product Catalog</h1>
+    <div class="page-subtitle">Manage inventory items, pricing, variants, and stock thresholds</div>
+  </div>
+  <div>
+    <a href="{% url 'dashboard:product_create' %}" class="btn btn-primary">+ Add New Product</a>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body" style="padding:1.25rem;">
+    <form method="GET" style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:1rem; align-items:flex-end;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Search</label>
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by name, SKU..." class="form-control">
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Category</label>
+        <select name="category" class="form-select">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+          <option value="{{ cat.id }}" {% if category_id == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Stock Status</label>
+        <select name="stock_status" class="form-select">
+          <option value="">All Stock Levels</option>
+          <option value="in" {% if stock_status == 'in' %}selected{% endif %}>In Stock</option>
+          <option value="low" {% if stock_status == 'low' %}selected{% endif %}>Low Stock Warning</option>
+          <option value="out" {% if stock_status == 'out' %}selected{% endif %}>Out of Stock</option>
+        </select>
+      </div>
+
+      <div style="display:flex; gap:0.5rem;">
+        <button type="submit" class="btn btn-secondary">Filter</button>
+        <a href="{% url 'dashboard:product_list' %}" class="btn btn-outline">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Products Table -->
+<div class="card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width:60px;">Image</th>
+          <th>Product Details</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Status</th>
+          <th style="text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in page_obj %}
+        <tr>
+          <td>
+            <div style="width:48px; height:48px; border-radius:6px; background:#f1f5f9; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+              {% if prod.primary_image %}
+                <img src="{{ prod.primary_image.image.url }}" alt="{{ prod.name }}" style="width:100%; height:100%; object-fit:cover;">
+              {% else %}
+                📦
+              {% endif %}
+            </div>
+          </td>
+          <td>
+            <div style="font-weight:700; color:#0f172a;">
+              <a href="{% url 'dashboard:product_edit' pk=prod.pk %}" style="color:#0f172a;">{{ prod.name }}</a>
+            </div>
+            <div style="font-size:0.75rem; color:#64748b;">
+              SKU: <code>{{ prod.sku }}</code> {% if prod.is_featured %}• <span style="color:#2563eb; font-weight:700;">★ Featured</span>{% endif %}
+            </div>
+          </td>
+          <td style="font-size:0.875rem; color:#475569;">{{ prod.category.name }}</td>
+          <td>
+            <div style="font-weight:700; color:#0f172a;">{{ currency_symbol }}{{ prod.effective_price }}</div>
+            {% if prod.has_discount %}
+              <div style="font-size:0.75rem; color:#94a3b8; text-decoration:line-through;">{{ currency_symbol }}{{ prod.price }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {% if prod.is_out_of_stock %}
+              <span style="color:#dc2626; font-weight:800; font-size:0.85rem;">0 (Out)</span>
+            {% elif prod.is_low_stock %}
+              <span style="color:#ca8a04; font-weight:800; font-size:0.85rem;">{{ prod.stock }} (Low)</span>
+            {% else %}
+              <span style="color:#16a34a; font-weight:700; font-size:0.85rem;">{{ prod.stock }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if prod.is_active %}
+              <span style="background:#dcfce7; color:#15803d; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:9999px;">Active</span>
+            {% else %}
+              <span style="background:#fee2e2; color:#991b1b; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:9999px;">Inactive</span>
+            {% endif %}
+          </td>
+          <td style="text-align:right;">
+            <div style="display:inline-flex; gap:0.4rem;">
+              <a href="{% url 'dashboard:product_edit' pk=prod.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+              {% if prod.is_active %}
+              <form action="{% url 'dashboard:product_delete' pk=prod.pk %}" method="POST" onsubmit="return confirm('Deactivate this product?');" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline btn-sm" style="color:#dc2626; border-color:#fca5a5;">Deactivate</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center; padding:3rem; color:#64748b;">No products match the filter.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div style="display:flex; justify-content:center; align-items:center; gap:0.5rem; padding:1.25rem;">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ category_id }}&stock_status={{ stock_status }}" class="btn btn-secondary btn-sm">&larr; Previous</a>
+    {% endif %}
+    <span style="font-size:0.875rem; color:#64748b;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ category_id }}&stock_status={{ stock_status }}" class="btn btn-secondary btn-sm">Next &rarr;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

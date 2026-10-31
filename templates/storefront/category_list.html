@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}All Product Categories | ApexStore{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="margin-bottom:2rem;">
+    <h1 style="font-size:2rem; font-weight:800; color:#0f172a; margin-bottom:0.5rem;">Explore All Categories</h1>
+    <p style="color:#64748b;">Browse our catalog by department and specialized subcategories.</p>
+  </div>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:2rem;">
+    {% for cat in categories %}
+    <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:2rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+      <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.25rem;">
+        <div style="width:50px; height:50px; border-radius:10px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:#2563eb;">
+          📁
+        </div>
+        <div>
+          <h2 style="font-size:1.3rem; font-weight:700;">
+            <a href="{% url 'catalog:category_detail' slug=cat.slug %}" style="color:#0f172a;">{{ cat.name }}</a>
+          </h2>
+          <span style="font-size:0.8125rem; color:#64748b;">{{ cat.product_count }} items total</span>
+        </div>
+      </div>
+
+      <p style="color:#475569; font-size:0.9rem; margin-bottom:1.25rem;">
+        {{ cat.description|default:"Discover our collection of items in this department." }}
+      </p>
+
+      {% if cat.subcategories.all %}
+      <div style="border-top:1px solid #f1f5f9; padding-top:1rem;">
+        <div style="font-size:0.8rem; text-transform:uppercase; font-weight:700; color:#94a3b8; margin-bottom:0.5rem;">Subcategories</div>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:0.4rem;">
+          {% for sub in cat.subcategories.all %}
+          <li>
+            <a href="{% url 'catalog:category_detail' slug=sub.slug %}" style="color:#2563eb; font-size:0.9rem; font-weight:500;">
+              &rarr; {{ sub.name }} ({{ sub.product_count }})
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <div style="margin-top:1.5rem;">
+        <a href="{% url 'catalog:category_detail' slug=cat.slug %}" class="btn btn-secondary btn-full btn-sm">
+          View {{ cat.name }} &rarr;
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

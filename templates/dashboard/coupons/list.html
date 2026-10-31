@@ -1,0 +1,75 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Coupons & Discounts | ApexStore Management{% endblock %}
+{% block header_title %}Discount Codes & Promotions{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <h1 class="page-title">Coupons & Promotions</h1>
+    <div class="page-subtitle">Configure percentage and fixed price promotional vouchers and track redemption limits</div>
+  </div>
+  <div>
+    <a href="{% url 'dashboard:coupon_create' %}" class="btn btn-primary">+ Create New Coupon</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Coupon Code</th>
+          <th>Discount</th>
+          <th>Min Order</th>
+          <th>Redemptions</th>
+          <th>Valid Until</th>
+          <th>Status</th>
+          <th style="text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in coupons %}
+        <tr>
+          <td><code style="font-size:1.05rem; font-weight:800; color:#2563eb;">{{ c.code }}</code></td>
+          <td>
+            <strong style="color:#0f172a;">
+              {% if c.discount_type == 'percent' %}{{ c.discount_value|floatformat:0 }}% Off{% else %}{{ currency_symbol }}{{ c.discount_value }} Off{% endif %}
+            </strong>
+          </td>
+          <td style="color:#64748b;">{{ currency_symbol }}{{ c.min_order_value }}</td>
+          <td>
+            <strong>{{ c.times_used }}</strong> / {{ c.usage_limit }} used
+          </td>
+          <td style="font-size:0.85rem; color:#64748b;">
+            {{ c.valid_to|date:"M d, Y" }}
+          </td>
+          <td>
+            {% if c.is_valid_now %}
+              <span class="status-badge badge-delivered">Active</span>
+            {% else %}
+              <span class="status-badge badge-cancelled">Inactive / Expired</span>
+            {% endif %}
+          </td>
+          <td style="text-align:right;">
+            <div style="display:inline-flex; gap:0.4rem;">
+              <a href="{% url 'dashboard:coupon_edit' pk=c.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+              <form action="{% url 'dashboard:coupon_toggle' pk=c.pk %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline btn-sm">
+                  {% if c.is_active %}Disable{% else %}Enable{% endif %}
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center; padding:3rem; color:#64748b;">No coupons created yet. Click '+ Create New Coupon' to add one.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

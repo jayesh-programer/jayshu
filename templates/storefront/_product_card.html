@@ -1,0 +1,71 @@
+{% load static %}
+<div class="product-card">
+  {% if product.has_discount %}
+    <span class="product-badge-discount">-{{ product.discount_percent }}% OFF</span>
+  {% endif %}
+
+  {% if user.is_authenticated %}
+    <button type="button" class="product-wishlist-btn btn-wishlist-toggle" data-url="{% url 'cart:toggle_wishlist' product_id=product.id %}" title="Toggle Wishlist">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+      </svg>
+    </button>
+  {% endif %}
+
+  <a href="{{ product.get_absolute_url }}" class="product-image-wrap">
+    {% if product.primary_image %}
+      <img src="{{ product.primary_image.image.url }}" alt="{{ product.name }}" loading="lazy">
+    {% else %}
+      <div class="product-image-placeholder">📦</div>
+    {% endif %}
+  </a>
+
+  <div class="product-info">
+    <div class="product-cat">{{ product.category.name }}</div>
+    <h3 class="product-name">
+      <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+    </h3>
+
+    <div class="product-rating">
+      <span>★ {{ product.average_rating }}</span>
+      <span class="product-rating-count">({{ product.reviews_count }})</span>
+    </div>
+
+    <!-- Stock Indicator -->
+    {% if product.is_out_of_stock %}
+      <div class="product-stock-tag stock-out">Out of Stock</div>
+    {% elif product.is_low_stock %}
+      <div class="product-stock-tag stock-low">Only {{ product.stock }} left in stock!</div>
+    {% else %}
+      <div class="product-stock-tag stock-in">In Stock ({{ product.stock }})</div>
+    {% endif %}
+
+    <div class="product-price-row">
+      <span class="price-current">{{ currency_symbol }}{{ product.effective_price }}</span>
+      {% if product.has_discount %}
+        <span class="price-original">{{ currency_symbol }}{{ product.price }}</span>
+      {% endif %}
+    </div>
+
+    <!-- Add To Cart Form -->
+    {% if not product.is_out_of_stock %}
+      <form action="{% url 'cart:add_to_cart' %}" method="POST" class="ajax-add-to-cart" style="margin-top:0.5rem;">
+        {% csrf_token %}
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="hidden" name="quantity" value="1">
+        <button type="submit" class="btn btn-secondary btn-full btn-sm" style="display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+          Add to Cart
+        </button>
+      </form>
+    {% else %}
+      <button class="btn btn-secondary btn-full btn-sm" disabled style="opacity:0.6; cursor:not-allowed;">
+        Unavailable
+      </button>
+    {% endif %}
+  </div>
+</div>

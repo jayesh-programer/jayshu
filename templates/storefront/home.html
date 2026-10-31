@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ApexStore | Modern Online Shopping{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Hero Banner -->
+  <section class="hero-banner">
+    <div class="hero-text">
+      <div class="hero-subtitle">Elevated Living & Tech</div>
+      <h1 class="hero-title">Experience the Next Generation of Retail</h1>
+      <p class="hero-desc">
+        Explore our curated collection of high-grade electronics, bespoke apparel, and home essentials. Fast domestic shipping and guaranteed authentic goods.
+      </p>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+        <a href="{% url 'catalog:product_list' %}" class="btn btn-primary btn-lg">Explore Catalog &rarr;</a>
+        <a href="{% url 'catalog:category_list' %}" class="btn btn-secondary btn-lg" style="background:rgba(255,255,255,0.15); color:#fff; border-color:transparent;">Browse Categories</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Value Props -->
+  <section class="features-grid">
+    <div class="feature-box">
+      <div class="feature-icon">🚀</div>
+      <div>
+        <div class="feature-title">Lightning Shipping</div>
+        <div class="feature-sub">Complimentary over {{ currency_symbol }}{{ free_shipping_threshold|floatformat:0 }}</div>
+      </div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">🛡️</div>
+      <div>
+        <div class="feature-title">Verified Authenticity</div>
+        <div class="feature-sub">100% genuine factory warranty</div>
+      </div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">🔄</div>
+      <div>
+        <div class="feature-title">30-Day Easy Returns</div>
+        <div class="feature-sub">Hassle-free refunds & exchanges</div>
+      </div>
+    </div>
+    <div class="feature-box">
+      <div class="feature-icon">💳</div>
+      <div>
+        <div class="feature-title">Secure Payments</div>
+        <div class="feature-sub">Encrypted Card & Cash on Delivery</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Top Categories -->
+  {% if categories %}
+  <section style="margin-bottom: 3.5rem;">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Shop by Category</h2>
+        <p style="color:#64748b; font-size:0.9375rem;">Explore our top departments and featured specialties.</p>
+      </div>
+      <a href="{% url 'catalog:category_list' %}" class="section-link">View All Categories &rarr;</a>
+    </div>
+
+    <div class="category-cards-grid">
+      {% for cat in categories %}
+      <a href="{% url 'catalog:category_detail' slug=cat.slug %}" class="category-card">
+        <div class="cat-icon-wrap">
+          {% if cat.image %}
+            <img src="{{ cat.image.url }}" alt="{{ cat.name }}" style="width:100%; height:100%; object-fit:cover; border-radius:9999px;">
+          {% else %}
+            📦
+          {% endif %}
+        </div>
+        <div class="category-card-name">{{ cat.name }}</div>
+        <div class="category-card-count">{{ cat.product_count }} items</div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Featured Products -->
+  <section style="margin-bottom: 3.5rem;">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Featured Highlights</h2>
+        <p style="color:#64748b; font-size:0.9375rem;">Hand-selected items chosen for superior performance and design.</p>
+      </div>
+      <a href="{% url 'catalog:product_list' %}" class="section-link">View All Products &rarr;</a>
+    </div>
+
+    <div class="products-grid">
+      {% for prod in featured_products %}
+        {% include 'storefront/_product_card.html' with product=prod %}
+      {% empty %}
+        <p style="color:#64748b; grid-column:1/-1;">No featured products found yet. Administrator can feature products from the dashboard.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Promotional Banner -->
+  <section style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color:#fff; border-radius:16px; padding:3rem; margin-bottom:3.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:2rem;">
+    <div>
+      <span style="background:#2563eb; color:#fff; padding:0.25rem 0.75rem; border-radius:9999px; font-size:0.8rem; font-weight:700; text-transform:uppercase;">Seasonal Offer</span>
+      <h3 style="font-size:2rem; font-weight:800; margin:0.75rem 0 0.5rem;">Save Up To 25% With Coupon: <span style="color:#60a5fa;">WELCOME25</span></h3>
+      <p style="color:#94a3b8; font-size:1rem; max-width:600px;">
+        Apply during checkout on eligible orders over {{ currency_symbol }}50 to unlock immediate instant savings.
+      </p>
+    </div>
+    <div>
+      <a href="{% url 'catalog:product_list' %}" class="btn btn-primary btn-lg">Shop The Sale &rarr;</a>
+    </div>
+  </section>
+
+  <!-- New Arrivals -->
+  <section style="margin-bottom: 3.5rem;">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Fresh Arrivals</h2>
+        <p style="color:#64748b; font-size:0.9375rem;">Recently added into our warehouse stock.</p>
+      </div>
+      <a href="{% url 'catalog:product_list' %}?sort=newest" class="section-link">See What's New &rarr;</a>
+    </div>
+
+    <div class="products-grid">
+      {% for prod in new_arrivals %}
+        {% include 'storefront/_product_card.html' with product=prod %}
+      {% empty %}
+        <p style="color:#64748b; grid-column:1/-1;">No products found yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Address | ApexStore{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:600px;">
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:2.5rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); margin:2rem 0;">
+    <div style="margin-bottom:1.5rem;">
+      <a href="{% url 'accounts:profile' %}" style="font-size:0.875rem; color:#64748b;">&larr; Back to Profile</a>
+      <h1 style="font-size:1.75rem; font-weight:800; color:#0f172a; margin-top:0.5rem;">{{ action }} Delivery Address</h1>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        {{ form.full_name }}
+        {% if form.full_name.errors %}<div class="errorlist">{{ form.full_name.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Contact Phone *</label>
+        {{ form.phone }}
+        {% if form.phone.errors %}<div class="errorlist">{{ form.phone.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Street Address *</label>
+        {{ form.street_address }}
+        {% if form.street_address.errors %}<div class="errorlist">{{ form.street_address.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Apartment, Suite, Unit</label>
+        {{ form.apartment }}
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">City *</label>
+          {{ form.city }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">State / Province *</label>
+          {{ form.state }}
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Postal / ZIP Code *</label>
+          {{ form.postal_code }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Country *</label>
+          {{ form.country }}
+        </div>
+      </div>
+
+      <div style="margin:1rem 0;">
+        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;">
+          {{ form.is_default_shipping }}
+          Make this my default shipping address
+        </label>
+      </div>
+
+      <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+        <button type="submit" class="btn btn-primary">{{ action }} Address</button>
+        <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

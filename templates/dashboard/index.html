@@ -1,0 +1,337 @@
+{% extends 'dashboard/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Overview | ApexStore Management{% endblock %}
+{% block header_title %}Overview & Executive Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <h1 class="page-title">Executive Dashboard</h1>
+    <div class="page-subtitle">Real-time database analytics and operational metrics</div>
+  </div>
+  <div style="display:flex; gap:0.75rem;">
+    <a href="{% url 'dashboard:product_create' %}" class="btn btn-primary btn-sm">+ Add New Product</a>
+    <a href="{% url 'reports:index' %}" class="btn btn-secondary btn-sm">📊 Detailed Reports</a>
+  </div>
+</div>
+
+<!-- Key Performance Indicators (KPI Cards) -->
+<div class="stats-grid">
+  <!-- Total Paid Sales -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Revenue (Paid)</span>
+      <span class="stat-value" style="color:#2563eb;">{{ currency_symbol }}{{ total_sales|floatformat:2 }}</span>
+    </div>
+    <div class="stat-icon primary">💰</div>
+  </div>
+
+  <!-- Total Orders -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Orders</span>
+      <span class="stat-value">{{ total_orders }}</span>
+    </div>
+    <div class="stat-icon indigo">🛒</div>
+  </div>
+
+  <!-- Products Count -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Active Products</span>
+      <span class="stat-value">{{ total_products }}</span>
+    </div>
+    <div class="stat-icon success">📦</div>
+  </div>
+
+  <!-- Customers Count -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Customers</span>
+      <span class="stat-value">{{ total_customers }}</span>
+    </div>
+    <div class="stat-icon primary">👥</div>
+  </div>
+</div>
+
+<!-- Secondary Stats Strip -->
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:2rem;">
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:1rem 1.25rem; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <div style="font-size:0.75rem; text-transform:uppercase; color:#64748b; font-weight:700;">Pending Orders</div>
+      <div style="font-size:1.4rem; font-weight:800; color:#ca8a04;">{{ pending_orders }}</div>
+    </div>
+    <span style="font-size:1.5rem;">⏳</span>
+  </div>
+
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:1rem 1.25rem; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <div style="font-size:0.75rem; text-transform:uppercase; color:#64748b; font-weight:700;">Delivered Orders</div>
+      <div style="font-size:1.4rem; font-weight:800; color:#16a34a;">{{ delivered_orders }}</div>
+    </div>
+    <span style="font-size:1.5rem;">✅</span>
+  </div>
+
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:1rem 1.25rem; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <div style="font-size:0.75rem; text-transform:uppercase; color:#64748b; font-weight:700;">Low Stock Alerts</div>
+      <div style="font-size:1.4rem; font-weight:800; color:#ca8a04;">{{ low_stock_count }}</div>
+    </div>
+    <span style="font-size:1.5rem;">⚠️</span>
+  </div>
+
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:1rem 1.25rem; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <div style="font-size:0.75rem; text-transform:uppercase; color:#64748b; font-weight:700;">Out of Stock</div>
+      <div style="font-size:1.4rem; font-weight:800; color:#dc2626;">{{ out_of_stock_count }}</div>
+    </div>
+    <span style="font-size:1.5rem;">❌</span>
+  </div>
+</div>
+
+<!-- 2-Column Section: Monthly Sales Chart & Best Sellers -->
+<div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.75rem; margin-bottom:2rem;">
+
+  <!-- Monthly Sales Bar Chart (CSS-rendered pure HTML) -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3 class="card-title">Monthly Revenue Performance ({{ current_year }})</h3>
+        <p style="font-size:0.8rem; color:#64748b; margin-top:2px;">Calculated from verified paid orders in database</p>
+      </div>
+      <a href="{% url 'reports:index' %}" style="font-size:0.85rem; color:#2563eb; font-weight:600;">Reports &rarr;</a>
+    </div>
+    <div class="card-body">
+      <div class="chart-container">
+        {% for m in monthly_data %}
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:{% if m.sales > 0 %}{% widthratio m.sales 500000 100 %}%{% else %}6px{% endif %};">
+            <span class="chart-bar-tooltip">{{ currency_symbol }}{{ m.sales|floatformat:0 }}</span>
+          </div>
+          <span class="chart-label">{{ m.month }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Best-Selling Products -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Best Sellers</h3>
+    </div>
+    <div class="card-body" style="padding:1rem;">
+      {% if best_sellers %}
+      <div style="display:flex; flex-direction:column; gap:0.85rem;">
+        {% for b in best_sellers %}
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:0.75rem; border-bottom:1px solid #f1f5f9;">
+          <div>
+            <div style="font-weight:700; font-size:0.9rem; color:#0f172a;">{{ b.product__name }}</div>
+            <div style="font-size:0.75rem; color:#64748b;">{{ b.total_sold }} units sold</div>
+          </div>
+          <div style="font-weight:800; color:#2563eb; font-size:0.95rem;">
+            {{ currency_symbol }}{{ b.total_revenue|floatformat:2 }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p style="color:#64748b; font-size:0.875rem; text-align:center; padding:1.5rem 0;">No sales recorded yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Recent Orders Table -->
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Recent Orders</h3>
+    <a href="{% url 'dashboard:order_list' %}" style="font-size:0.85rem; color:#2563eb; font-weight:600;">View All Orders &rarr;</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Order Number</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Payment</th>
+          <th>Total</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ord in recent_orders %}
+        <tr>
+          <td>
+            <a href="{% url 'dashboard:order_detail' pk=ord.pk %}" style="font-weight:700; color:#2563eb;">
+              {{ ord.order_number }}
+            </a>
+          </td>
+          <td>
+            <div style="font-weight:600; color:#0f172a;">{{ ord.customer_name }}</div>
+            <div style="font-size:0.75rem; color:#64748b;">{{ ord.customer_email }}</div>
+          </td>
+          <td style="font-size:0.85rem; color:#64748b;">{{ ord.created_at|date:"M d, Y" }}</td>
+          <td><span class="status-badge badge-{{ ord.status }}">{{ ord.get_status_display }}</span></td>
+          <td>
+            <span style="font-size:0.8rem; font-weight:600; color:#475569;">
+              {{ ord.get_payment_method_display }} ({{ ord.get_payment_status_display }})
+            </span>
+          </td>
+          <td style="font-weight:800; color:#0f172a;">{{ currency_symbol }}{{ ord.total }}</td>
+          <td>
+            <a href="{% url 'dashboard:order_detail' pk=ord.pk %}" class="btn btn-secondary btn-sm">Manage</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center; color:#64748b; padding:2rem;">No orders placed yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Recent Payment Transactions -->
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Recent Payment Transactions</h3>
+    <a href="{% url 'dashboard:payment_transactions' %}" style="font-size:0.85rem; color:#2563eb; font-weight:600;">View All Transactions &rarr;</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Transaction ID</th>
+          <th>Order #</th>
+          <th>Method</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pay in recent_payments %}
+        <tr>
+          <td><code style="font-weight:700; color:#2563eb;">{{ pay.transaction_id }}</code></td>
+          <td>
+            <a href="{% url 'dashboard:order_detail' pk=pay.order.pk %}" style="font-weight:600; color:#0f172a;">
+              {{ pay.order.order_number }}
+            </a>
+          </td>
+          <td style="font-size:0.85rem; color:#475569;">{{ pay.payment_method }}</td>
+          <td><strong>{{ currency_symbol }}{{ pay.amount }}</strong></td>
+          <td><span class="status-badge badge-{{ pay.status }}">{{ pay.get_status_display }}</span></td>
+          <td style="font-size:0.85rem; color:#64748b;">{{ pay.created_at|date:"M d, Y H:i" }}</td>
+          <td>
+            <a href="{% url 'dashboard:order_detail' pk=pay.order.pk %}" class="btn btn-secondary btn-sm">Order</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center; color:#64748b; padding:2rem;">No payment transactions recorded yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Stock Alerts Action Table -->
+{% if low_stock_products %}
+<div class="card" style="border-left:4px solid #ca8a04;">
+  <div class="card-header" style="background:#fefce8;">
+    <div>
+      <h3 class="card-title" style="color:#854d0e;">⚠️ Low-Stock & Depletion Alerts</h3>
+      <p style="font-size:0.8rem; color:#a16207; margin-top:2px;">Products needing immediate purchase order replenishment</p>
+    </div>
+    <a href="{% url 'dashboard:inventory_list' %}?filter=low" class="btn btn-secondary btn-sm">Full Inventory &rarr;</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Product</th>
+          <th>Stock Left</th>
+          <th>Threshold</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in low_stock_products %}
+        <tr>
+          <td><code>{{ p.sku }}</code></td>
+          <td style="font-weight:700; color:#0f172a;">{{ p.name }}</td>
+          <td>
+            <span style="font-weight:800; color:{% if p.stock <= 0 %}#dc2626{% else %}#ca8a04{% endif %};">
+              {{ p.stock }} units
+            </span>
+          </td>
+          <td style="color:#64748b;">{{ p.low_stock_threshold }} units</td>
+          <td>
+            <button type="button" class="btn btn-secondary btn-sm btn-adjust-stock" 
+              data-product-id="{{ p.id }}" 
+              data-product-name="{{ p.name }}" 
+              data-current-stock="{{ p.stock }}">
+              Restock Now
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Quick Stock Adjustment Modal -->
+<div id="modal-stock-adjust" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Adjust Inventory Stock</h3>
+      <button type="button" class="modal-close" data-modal-close>&times;</button>
+    </div>
+    <form id="form-stock-adjust" method="POST">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div style="margin-bottom:1rem; font-size:0.95rem;">
+          Product: <strong id="adjust-product-title" style="color:#2563eb;"></strong><br>
+          Current available: <strong id="adjust-current-stock" style="color:#0f172a;"></strong> units
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Stock Change Quantity (+ to add, - to deduct)</label>
+          <input type="number" name="quantity" class="form-control" placeholder="e.g. +50 or -5" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Reason / Change Type</label>
+          <select name="change_type" class="form-select">
+            <option value="restock">Restock / Purchase order received</option>
+            <option value="adjustment">Physical stock count correction</option>
+            <option value="return">Customer return</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Note / Reference #</label>
+          <input type="text" name="note" class="form-control" placeholder="PO-10492 or warehouse audit">
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+          <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Stock</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

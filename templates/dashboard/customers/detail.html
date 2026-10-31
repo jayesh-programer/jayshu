@@ -1,0 +1,150 @@
+{% extends 'dashboard/dashboard_base.html' %}
+
+{% block title %}Customer Profile: {{ customer.username }} | ApexStore{% endblock %}
+{% block header_title %}Customer Profile & CRM{% endblock %}
+
+{% block content %}
+<div class="page-title-row">
+  <div>
+    <div style="font-size:0.85rem; color:#64748b; margin-bottom:0.25rem;">
+      <a href="{% url 'dashboard:customer_list' %}">&larr; Back to Customers</a>
+    </div>
+    <h1 class="page-title">{{ customer.get_full_name|default:customer.username }}</h1>
+    <div class="page-subtitle">Account created on {{ customer.date_joined|date:"F d, Y" }}</div>
+  </div>
+  <div>
+    <form action="{% url 'dashboard:customer_toggle_suspend' pk=customer.pk %}" method="POST" onsubmit="return confirm('Toggle account suspension status?');">
+      {% csrf_token %}
+      {% if customer.profile.is_suspended %}
+        <button type="submit" class="btn btn-success btn-sm">Reactivate Account</button>
+      {% else %}
+        <button type="submit" class="btn btn-danger btn-sm">Suspend Account</button>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- Metrics Cards -->
+<div class="stats-grid" style="margin-bottom:2rem;">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Lifetime Purchases</span>
+      <span class="stat-value" style="color:#2563eb;">{{ currency_symbol }}{{ total_spent|floatformat:2 }}</span>
+    </div>
+    <div class="stat-icon primary">💰</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Orders</span>
+      <span class="stat-value">{{ orders.count }}</span>
+    </div>
+    <div class="stat-icon indigo">🛒</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Support Tickets</span>
+      <span class="stat-value">{{ tickets.count }}</span>
+    </div>
+    <div class="stat-icon warning">🎫</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Account Status</span>
+      <span class="stat-value" style="font-size:1.3rem;">
+        {% if customer.profile.is_suspended %}
+          <span style="color:#dc2626;">Suspended</span>
+        {% else %}
+          <span style="color:#16a34a;">Active</span>
+        {% endif %}
+      </span>
+    </div>
+    <div class="stat-icon {% if customer.profile.is_suspended %}danger{% else %}success{% endif %}">
+      {% if customer.profile.is_suspended %}❌{% else %}✓{% endif %}
+    </div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 2fr 1fr; gap:2rem; align-items:start;">
+
+  <!-- Left: Order History Table -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Order History</h3>
+    </div>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Total</th>
+            <th style="text-align:right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ord in orders %}
+          <tr>
+            <td>
+              <a href="{% url 'dashboard:order_detail' pk=ord.pk %}" style="font-weight:700; color:#2563eb;">
+                {{ ord.order_number }}
+              </a>
+            </td>
+            <td style="font-size:0.85rem; color:#64748b;">{{ ord.created_at|date:"M d, Y" }}</td>
+            <td><span class="status-badge badge-{{ ord.status }}">{{ ord.get_status_display }}</span></td>
+            <td style="font-weight:700; color:#0f172a;">{{ currency_symbol }}{{ ord.total }}</td>
+            <td style="text-align:right;">
+              <a href="{% url 'dashboard:order_detail' pk=ord.pk %}" class="btn btn-secondary btn-sm">View</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" style="text-align:center; padding:2rem; color:#64748b;">No orders placed yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right: Profile Info & Addresses -->
+  <div style="display:flex; flex-direction:column; gap:1.5rem;">
+    <!-- Profile Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Account Information</h3>
+      </div>
+      <div class="card-body" style="font-size:0.9rem; line-height:1.6;">
+        <div><strong>Username:</strong> {{ customer.username }}</div>
+        <div><strong>Email:</strong> <a href="mailto:{{ customer.email }}">{{ customer.email }}</a></div>
+        <div><strong>Phone:</strong> {{ customer.profile.phone|default:"Not specified" }}</div>
+        <div><strong>Role:</strong> {{ customer.profile.get_role_display }}</div>
+        <div><strong>Last Login:</strong> {{ customer.last_login|date:"M d, Y H:i"|default:"Never" }}</div>
+      </div>
+    </div>
+
+    <!-- Saved Addresses -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Saved Shipping Addresses</h3>
+      </div>
+      <div class="card-body">
+        {% for addr in addresses %}
+        <div style="border-bottom:1px solid #e2e8f0; padding-bottom:0.75rem; margin-bottom:0.75rem; font-size:0.875rem;">
+          <strong style="color:#0f172a;">{{ addr.full_name }}</strong><br>
+          {{ addr.street_address }}{% if addr.apartment %}, {{ addr.apartment }}{% endif %}<br>
+          {{ addr.city }}, {{ addr.state }} {{ addr.postal_code }}<br>
+          📞 {{ addr.phone }}
+        </div>
+        {% empty %}
+        <p style="color:#64748b; font-size:0.875rem;">No saved addresses on file.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

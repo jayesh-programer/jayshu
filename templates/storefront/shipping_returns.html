@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Shipping & Return Policies | ApexStore{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:860px;">
+  <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:3rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); line-height:1.7; color:#334155;">
+    <h1 style="font-size:2.25rem; font-weight:800; color:#0f172a; margin-bottom:1.5rem;">Shipping & Returns</h1>
+
+    <h2 style="font-size:1.35rem; font-weight:700; color:#0f172a; margin:1.5rem 0 0.5rem;">Shipping Rates & Timelines</h2>
+    <p>Orders are dispatched from our centralized fulfillment center within 24-48 business hours. We partner with reliable domestic and international parcel carriers to ensure rapid transit times.</p>
+    
+    <ul style="padding-left:1.5rem; margin:1rem 0;">
+      <li><strong>Standard Shipping:</strong> Flat rate of {{ currency_symbol }}{{ shipping_flat_rate|floatformat:2 }} (3-5 business days).</li>
+      <li><strong>Complimentary Free Shipping:</strong> Automatically applied at checkout on all orders with a subtotal of {{ currency_symbol }}{{ free_shipping_threshold|floatformat:0 }} or more.</li>
+    </ul>
+
+    <h2 style="font-size:1.35rem; font-weight:700; color:#0f172a; margin:2rem 0 0.5rem;">30-Day Return Guarantee</h2>
+    <p>If you are not entirely satisfied with your purchase, you may initiate a return within 30 days of receiving your package. Returned goods must be in their original packaging, unused, and with all protective tags attached.</p>
+
+    <h2 style="font-size:1.35rem; font-weight:700; color:#0f172a; margin:2rem 0 0.5rem;">Restoration and Refunds</h2>
+    <p>Upon receipt and inspection by our warehouse staff, eligible returns receive a full refund to the original payment method. Returned merchandise stock is restored automatically to available catalog inventory.</p>
+  </div>
+</div>
+{% endblock %}
